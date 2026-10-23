@@ -1,0 +1,161 @@
+/* Hành Trình Của Kraken — giao diện cho bé 6 tuổi: chữ to, nút to, màu tươi */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: "Comic Sans MS", "Segoe UI Rounded", "Arial Rounded MT Bold", system-ui, sans-serif;
+  background: linear-gradient(180deg, #8ecae6 0%, #caf0f8 55%, #ffd6a5 100%);
+  min-height: 100vh;
+  color: #22223b;
+  user-select: none;
+}
+.hidden { display: none !important; }
+.screen { min-height: 100vh; padding: 18px; }
+
+/* ---------- nút toàn màn hình ---------- */
+.btn-fullscreen {
+  position: fixed; top: 12px; right: 12px; z-index: 50;
+  font-size: 20px; padding: 10px 18px; border-radius: 999px;
+  border: 3px solid #22223b; background: #fff; cursor: pointer; font-family: inherit; font-weight: bold;
+}
+.btn-fullscreen:hover { background: #ffe66d; }
+
+/* ---------- trang chủ ---------- */
+.home-inner { max-width: 860px; margin: 0 auto; text-align: center; }
+.mascot { display: flex; justify-content: center; }
+.kraken-svg { width: 190px; height: auto; animation: bob 2.6s ease-in-out infinite; }
+@keyframes bob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
+.game-title { font-size: 52px; margin: 4px 0 2px; color: #023047; text-shadow: 2px 2px 0 #fff; }
+.game-subtitle { font-size: 24px; margin: 4px 0; }
+.total-stars { font-size: 26px; font-weight: bold; }
+.level-menu { display: flex; flex-direction: column; gap: 14px; margin: 18px auto 10px; max-width: 720px; }
+.level-btn {
+  display: flex; align-items: center; gap: 16px; text-align: left;
+  font-family: inherit; cursor: pointer; padding: 16px 20px;
+  border-radius: 22px; border: 4px solid #22223b; background: #ffffff;
+  box-shadow: 0 5px 0 #22223b; transition: transform .08s, box-shadow .08s;
+}
+.level-btn:hover { transform: translateY(-2px) scale(1.01); background: #fffbe6; }
+.level-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #22223b; }
+.level-btn:nth-child(1) { border-color: #0077b6; box-shadow: 0 5px 0 #0077b6; }
+.level-btn:nth-child(2) { border-color: #2a9d8f; box-shadow: 0 5px 0 #2a9d8f; }
+.level-btn:nth-child(3) { border-color: #e76f51; box-shadow: 0 5px 0 #e76f51; }
+.level-btn:nth-child(4) { border-color: #e9c46a; box-shadow: 0 5px 0 #e9c46a; }
+.level-btn:nth-child(5) { border-color: #43aa8b; box-shadow: 0 5px 0 #43aa8b; }
+.level-icon { font-size: 52px; line-height: 1; }
+.level-text { flex: 1; display: flex; flex-direction: column; }
+.level-name { font-size: 25px; font-weight: bold; }
+.level-skill { font-size: 19px; color: #555; }
+.level-stars { font-size: 26px; min-width: 96px; text-align: right; }
+.parent-note { font-size: 18px; color: #444; margin-top: 14px; }
+
+/* ---------- khung màn chơi ---------- */
+.level-header { display: flex; align-items: center; gap: 16px; max-width: 1100px; margin: 0 auto; }
+.level-header h2 { font-size: 32px; margin: 0; flex: 1; text-align: center; }
+.btn-nav {
+  font-family: inherit; font-size: 20px; font-weight: bold; cursor: pointer;
+  padding: 10px 18px; border-radius: 999px; border: 3px solid #22223b; background: #fff;
+}
+.btn-nav:hover { background: #ffe66d; }
+.level-hud { font-size: 24px; font-weight: bold; min-width: 170px; text-align: right; }
+.level-instruction { text-align: center; font-size: 24px; font-weight: bold; margin: 10px auto 12px; max-width: 1000px; }
+.level-stage {
+  position: relative; max-width: 1100px; height: 560px; margin: 0 auto;
+  border-radius: 26px; border: 5px solid #22223b; overflow: hidden; background: #ade8f4;
+  touch-action: none;
+}
+
+/* ---------- hoàn thành ---------- */
+.complete-inner { max-width: 760px; margin: 6vh auto 0; text-align: center; background: rgba(255,255,255,.85); border-radius: 30px; padding: 30px 24px 40px; border: 5px solid #22223b; }
+.complete-emoji { font-size: 96px; animation: bob 1.6s ease-in-out infinite; }
+.complete-inner h2 { font-size: 44px; margin: 6px 0; }
+#complete-message { font-size: 24px; }
+.complete-stars { font-size: 62px; letter-spacing: 8px; margin: 8px 0 4px; animation: starpop .6s ease; }
+@keyframes starpop { 0% { transform: scale(.3); } 70% { transform: scale(1.25); } 100% { transform: scale(1); } }
+.complete-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+.btn-big { font-family: inherit; font-size: 24px; font-weight: bold; cursor: pointer; padding: 16px 26px; border-radius: 999px; border: 4px solid #22223b; color: #22223b; }
+.btn-blue { background: #90e0ef; } .btn-green { background: #b7e4a8; } .btn-orange { background: #ffd6a5; }
+.btn-big:hover { filter: brightness(1.07); transform: translateY(-2px); }
+
+/* chữ khen bay lên */
+.float-text {
+  position: absolute; z-index: 30; pointer-events: none;
+  font-size: 34px; font-weight: bold; color: #ff006e;
+  text-shadow: 2px 2px 0 #fff; animation: floatUp 1.1s ease-out forwards; white-space: nowrap;
+}
+@keyframes floatUp { 0% { opacity: 0; transform: translate(-50%,0) scale(.6); } 20% { opacity: 1; transform: translate(-50%,-14px) scale(1.15); } 100% { opacity: 0; transform: translate(-50%,-80px) scale(1); } }
+
+/* ================= MÀN 1: biển ================= */
+.sea-stage { background: linear-gradient(180deg, #48cae4 0%, #0096c7 45%, #023e8a 100%); }
+.sea-surface { position: absolute; top: 0; left: 0; right: 0; height: 74px; background: rgba(255,255,255,.25); font-size: 52px; display: flex; justify-content: space-between; padding: 4px 18px; }
+.sea-floor { position: absolute; bottom: 0; left: 0; right: 0; height: 56px; background: #e9c46a; border-radius: 50% 50% 0 0 / 100% 100% 0 0; font-size: 34px; display: flex; justify-content: space-around; align-items: center; }
+.sea-item { position: absolute; font-size: 58px; cursor: pointer; transition: transform .15s; z-index: 5; line-height: 1; padding: 8px; }
+.sea-item:hover { transform: scale(1.25) rotate(-6deg); }
+.kraken-friend { position: absolute; font-size: 74px; z-index: 6; pointer-events: none; transform: translate(-50%,-50%); line-height: 1; filter: drop-shadow(2px 3px 2px rgba(0,0,0,.3)); }
+.collected-pop { animation: popOut .3s forwards; }
+@keyframes popOut { to { transform: scale(1.7); opacity: 0; } }
+
+/* ================= MÀN 2: hứng hàng ================= */
+.sky-stage { background: linear-gradient(180deg, #90e0ef 0%, #caf0f8 52%, #0077b6 52.2%, #023e8a 100%); }
+.sky-plane { position: absolute; font-size: 56px; z-index: 4; pointer-events: none; }
+.sky-ship { position: absolute; bottom: 6px; font-size: 78px; z-index: 4; pointer-events: none; }
+.crate { position: absolute; z-index: 8; cursor: pointer; text-align: center; line-height: 1; transform: translate(-50%,0); }
+.crate .chute { font-size: 44px; display: block; }
+.crate .box { font-size: 62px; display: block; }
+.crate:hover .box { transform: scale(1.12); }
+.crate-caught { transition: all .45s ease-in; }
+.splash { position: absolute; font-size: 44px; z-index: 7; pointer-events: none; animation: popOut .8s forwards; }
+
+/* ================= MÀN 3: kéo thả ================= */
+.sort-stage { background: linear-gradient(180deg, #fef9c3 0%, #fef9c3 58%, #d9ed92 58.2%, #95d5b2 100%); }
+.sort-yard { position: absolute; top: 0; left: 0; right: 0; height: 58%; }
+.sort-zones { position: absolute; bottom: 0; left: 0; right: 0; height: 42%; display: flex; gap: 12px; padding: 12px; }
+.sort-zone { flex: 1; border: 5px dashed #666; border-radius: 20px; background: rgba(255,255,255,.75); text-align: center; padding-top: 8px; position: relative; overflow: hidden; }
+.sort-zone .zone-icon { font-size: 44px; }
+.sort-zone .zone-name { font-size: 21px; font-weight: bold; display: block; }
+.sort-zone.zone-over { border-style: solid; background: #fff3b0; transform: scale(1.02); }
+.sort-zone .zone-parked { font-size: 34px; }
+.drag-item { position: absolute; font-size: 60px; z-index: 10; cursor: grab; line-height: 1; padding: 8px; touch-action: none; }
+.drag-item.dragging { cursor: grabbing; z-index: 40; filter: drop-shadow(3px 5px 3px rgba(0,0,0,.35)); transform: scale(1.15); }
+.drag-item.parked { cursor: default; opacity: .95; }
+
+/* ================= MÀN 4: đua xe ================= */
+.race-stage { background: #95d5b2; }
+.race-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.race-car { position: absolute; font-size: 56px; z-index: 10; transform: translate(-50%,-50%); pointer-events: none; line-height: 1; }
+.race-hint { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 11; background: rgba(255,255,255,.9); border-radius: 999px; padding: 6px 18px; font-size: 21px; font-weight: bold; pointer-events: none; }
+
+/* ================= MÀN 5: sút phạt ================= */
+.pitch-stage { background: linear-gradient(180deg, #74c69d 0%, #40916c 70%, #2d6a4f 100%); }
+.goal {
+  position: absolute; top: 36px; left: 50%; transform: translateX(-50%);
+  width: 62%; height: 300px; border: 10px solid #fff; border-bottom: none; border-radius: 10px 10px 0 0;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,.06) 0 24px, transparent 24px 48px);
+}
+.keeper { position: absolute; top: 150px; font-size: 84px; transform: translateX(-50%); z-index: 5; line-height: 1; }
+.aim { position: absolute; font-size: 44px; transform: translate(-50%,-50%); z-index: 6; pointer-events: none; line-height: 1; }
+.ball { position: absolute; bottom: 64px; left: 50%; font-size: 62px; transform: translateX(-50%); z-index: 7; line-height: 1; }
+.striker { position: absolute; bottom: 8px; left: calc(50% - 130px); z-index: 7; text-align: center; line-height: 1; }
+.striker .octo { font-size: 76px; display: block; }
+.jersey {
+  display: inline-block; background: #d90429; color: #fff; font-weight: bold; font-size: 24px;
+  border: 3px solid #fff; border-radius: 50%; width: 40px; height: 40px; line-height: 36px; margin-top: -16px; position: relative;
+}
+.power-wrap { position: absolute; bottom: 16px; right: 18px; width: 230px; z-index: 9; background: rgba(255,255,255,.9); border-radius: 16px; padding: 8px 12px; border: 3px solid #22223b; }
+.power-label { font-size: 18px; font-weight: bold; text-align: center; }
+.power-bar { height: 26px; border-radius: 999px; background: linear-gradient(90deg, #ffe66d 0 35%, #80ed99 35% 75%, #ef476f 75% 100%); position: relative; overflow: hidden; border: 2px solid #22223b; }
+.power-fill { position: absolute; top: 0; bottom: 0; right: 0; background: rgba(34,34,59,.45); width: 100%; }
+.power-zones { display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; }
+.siuuu {
+  position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.55); text-align: center;
+}
+.siuuu .big { font-size: 92px; font-weight: bold; color: #d90429; text-shadow: 3px 3px 0 #fff; animation: starpop .5s ease infinite alternate; }
+.siuuu .cup { font-size: 110px; animation: bob 1s ease-in-out infinite; }
+.siuuu .sub { font-size: 30px; font-weight: bold; }
+
+@media (max-width: 700px) {
+  .game-title { font-size: 38px; }
+  .level-name { font-size: 20px; }
+  .level-stage { height: 480px; }
+  .level-header h2 { font-size: 24px; }
+}

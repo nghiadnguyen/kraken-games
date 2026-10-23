@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hành Trình Của Kraken — Game luyện chuột cho bé</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐙</text></svg>">
+</head>
+<body>
+
+<!-- Nút toàn màn hình -->
+<button id="btn-fullscreen" class="btn-fullscreen" title="Toàn màn hình">⛶ Phóng to</button>
+
+<!-- ============ TRANG CHỦ ============ -->
+<main id="screen-home" class="screen">
+  <div class="home-inner">
+    <div class="mascot" aria-hidden="true">
+      <svg viewBox="0 0 200 170" class="kraken-svg">
+        <!-- xúc tu -->
+        <path d="M45 118 q-14 26 -30 18 q-13 -7 -2 -18" fill="none" stroke="#9b5de5" stroke-width="13" stroke-linecap="round"/>
+        <path d="M75 126 q-4 28 -20 26 q-14 -2 -8 -16" fill="none" stroke="#9b5de5" stroke-width="13" stroke-linecap="round"/>
+        <path d="M105 128 q2 28 -12 30 q-13 1 -11 -14" fill="none" stroke="#9b5de5" stroke-width="13" stroke-linecap="round"/>
+        <path d="M135 124 q10 26 -2 30 q-12 4 -14 -12" fill="none" stroke="#9b5de5" stroke-width="13" stroke-linecap="round"/>
+        <path d="M158 114 q20 18 8 27 q-10 8 -16 -6" fill="none" stroke="#9b5de5" stroke-width="13" stroke-linecap="round"/>
+        <!-- đầu -->
+        <ellipse cx="100" cy="82" rx="62" ry="56" fill="#b892f0"/>
+        <ellipse cx="100" cy="95" rx="62" ry="43" fill="#c9a6f5"/>
+        <!-- mũ thuyền trưởng -->
+        <path d="M62 40 q38 -26 76 0 l-4 14 q-34 -16 -68 0 z" fill="#ffffff" stroke="#3a86ff" stroke-width="3"/>
+        <rect x="60" y="50" width="80" height="9" rx="4" fill="#3a86ff"/>
+        <text x="100" y="36" font-size="17" text-anchor="middle">⚓</text>
+        <!-- mắt -->
+        <circle cx="78" cy="84" r="11" fill="#fff"/><circle cx="78" cy="86" r="6" fill="#22223b"/>
+        <circle cx="122" cy="84" r="11" fill="#fff"/><circle cx="122" cy="86" r="6" fill="#22223b"/>
+        <circle cx="80" cy="82" r="2.2" fill="#fff"/><circle cx="124" cy="82" r="2.2" fill="#fff"/>
+        <!-- miệng cười + má hồng -->
+        <path d="M86 106 q14 12 28 0" fill="none" stroke="#22223b" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="62" cy="102" r="7" fill="#ffafcc" opacity="0.8"/>
+        <circle cx="138" cy="102" r="7" fill="#ffafcc" opacity="0.8"/>
+      </svg>
+    </div>
+
+    <h1 class="game-title">Hành Trình Của Kraken</h1>
+    <p class="game-subtitle">Chào Kraken! Cùng luyện chuột qua 5 màn vui nhộn nhé! 🐙</p>
+    <p class="total-stars">Tổng số sao của con: <span id="total-stars">⭐ 0</span></p>
+
+    <nav class="level-menu" id="level-menu">
+      <button class="level-btn" data-level="1">
+        <span class="level-icon">🫧</span>
+        <span class="level-text"><span class="level-name">Màn 1: Lặn Biển Tìm Kho Báu</span>
+        <span class="level-skill">Luyện: Di chuột</span></span>
+        <span class="level-stars" data-stars-for="1"></span>
+      </button>
+      <button class="level-btn" data-level="2">
+        <span class="level-icon">🪂</span>
+        <span class="level-text"><span class="level-name">Màn 2: Hứng Hàng Cứu Trợ</span>
+        <span class="level-skill">Luyện: Bấm chuột (click)</span></span>
+        <span class="level-stars" data-stars-for="2"></span>
+      </button>
+      <button class="level-btn" data-level="3">
+        <span class="level-icon">🚗</span>
+        <span class="level-text"><span class="level-name">Màn 3: Xếp Xe, Máy Bay, Tàu Chiến</span>
+        <span class="level-skill">Luyện: Kéo và thả</span></span>
+        <span class="level-stars" data-stars-for="3"></span>
+      </button>
+      <button class="level-btn" data-level="4">
+        <span class="level-icon">🏎️</span>
+        <span class="level-text"><span class="level-name">Màn 4: Đua Xe Ăn Xu Vàng</span>
+        <span class="level-skill">Luyện: Giữ chuột và lái theo đường</span></span>
+        <span class="level-stars" data-stars-for="4"></span>
+      </button>
+      <button class="level-btn" data-level="5">
+        <span class="level-icon">⚽</span>
+        <span class="level-text"><span class="level-name">Màn 5: Kraken Sút Phạt — Tiền Đạo Số 7</span>
+        <span class="level-skill">Luyện: Ngắm, giữ chuột nạp lực, thả ra sút!</span></span>
+        <span class="level-stars" data-stars-for="5"></span>
+      </button>
+    </nav>
+
+    <p class="parent-note">👨‍👩‍👦 Cho ba mẹ: bấm thẳng vào màn bất kỳ để chơi, không cần qua màn trước. Mỗi màn chỉ 1–2 phút.</p>
+  </div>
+</main>
+
+<!-- ============ MÀN CHƠI ============ -->
+<main id="screen-level" class="screen hidden">
+  <header class="level-header">
+    <button id="btn-home" class="btn-nav">🏠 Về trang chủ</button>
+    <h2 id="level-title">Màn chơi</h2>
+    <div id="level-hud" class="level-hud"></div>
+  </header>
+  <p id="level-instruction" class="level-instruction"></p>
+  <div id="level-stage" class="level-stage"></div>
+</main>
+
+<!-- ============ HOÀN THÀNH MÀN ============ -->
+<main id="screen-complete" class="screen hidden">
+  <div class="complete-inner">
+    <div id="complete-emoji" class="complete-emoji">🎉</div>
+    <h2 id="complete-title">Giỏi quá Kraken!</h2>
+    <p id="complete-message">Con đã hoàn thành màn chơi!</p>
+    <div id="complete-stars" class="complete-stars">⭐⭐⭐</div>
+    <div id="complete-extra"></div>
+    <div class="complete-buttons">
+      <button id="btn-replay" class="btn-big btn-blue">🔁 Chơi lại</button>
+      <button id="btn-next" class="btn-big btn-green">➡️ Màn tiếp theo</button>
+      <button id="btn-complete-home" class="btn-big btn-orange">🏠 Về trang chủ</button>
+    </div>
+  </div>
+</main>
+
+<script src="js/audio.js"></script>
+<script src="js/main.js"></script>
+<script src="js/level1.js"></script>
+<script src="js/level2.js"></script>
+<script src="js/level3.js"></script>
+<script src="js/level4.js"></script>
+<script src="js/level5.js"></script>
+</body>
+</html>
