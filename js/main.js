@@ -15,11 +15,24 @@ window.Kraken = (function () {
   };
 
   function loadProgress() {
+    let p = { stars: {}, completed: {}, difficulty: {} };
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          // gộp với mặc định để dữ liệu cũ (chưa có difficulty) không bị mất
+          if (parsed.stars) p.stars = parsed.stars;
+          if (parsed.completed) p.completed = parsed.completed;
+          if (parsed.difficulty) p.difficulty = parsed.difficulty;
+        }
+      }
     } catch (e) { /* bỏ qua nếu localStorage bị chặn */ }
-    return { stars: {}, completed: {} };
+    return p;
+  }
+  function getDifficulty(n) {
+    const d = Math.floor(Number(progress.difficulty[n]));
+    return isFinite(d) && d >= 1 ? d : 1;
   }
   function saveProgress() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); } catch (e) {}
@@ -38,6 +51,9 @@ window.Kraken = (function () {
       el.textContent = n ? "⭐".repeat(n) : "☆☆☆";
     });
     $("total-stars").textContent = "⭐ " + total;
+    document.querySelectorAll("[data-diff-for]").forEach(el => {
+      el.textContent = "Cấp " + getDifficulty(el.getAttribute("data-diff-for"));
+    });
   }
 
   function startLevel(n) {
@@ -47,14 +63,29 @@ window.Kraken = (function () {
     $("level-hud").textContent = "";
     $("level-title").textContent = LEVELS[n].title;
     $("level-instruction").textContent = LEVELS[n].instruction;
+    const D = getDifficulty(n);
+    $("diff-label").textContent = "Cấp " + D;
+    $("btn-diff-minus").disabled = D <= 1;
     show("screen-level");
     const fn = window["KrakenLevel" + n];
     if (typeof fn === "function") {
       activeCleanup = fn($("level-stage"), {
         hud: $("level-hud"),
+        difficulty: D,
+        params: window.KrakenDifficulty.params(n, D),
         complete: (stars, extra) => completeLevel(n, stars, extra)
       }) || null;
     }
+  }
+
+  function changeDifficulty(delta) {
+    if (!currentLevel) return;
+    const next = Math.max(1, getDifficulty(currentLevel) + delta);
+    if (next === getDifficulty(currentLevel)) return;
+    progress.difficulty[currentLevel] = next;
+    saveProgress();
+    window.KrakenAudio.unlock();
+    startLevel(currentLevel); // khởi động lại màn với thông số mới
   }
 
   function completeLevel(n, stars, extra) {
@@ -62,12 +93,32 @@ window.Kraken = (function () {
     stars = Math.max(1, Math.min(3, stars || 1));
     if (!progress.stars[n] || stars > progress.stars[n]) progress.stars[n] = stars;
     progress.completed[n] = true;
+
+    /* ---- lên / xuống cấp theo kết quả (công thức đã chốt) ---- */
+    const playedD = getDifficulty(n);
+    let delta = 0;
+    if (extra && typeof extra.goals === "number" && typeof extra.needGoals === "number") {
+      // Màn 5 dùng luật riêng theo số bàn thắng so với số bàn cần
+      if (extra.goals >= extra.needGoals) delta = 1;
+      else if (extra.goals <= extra.needGoals - 2) delta = -1;
+    } else if (extra && typeof extra.perf === "number") {
+      if (extra.perf >= 0.8) delta = 1;
+      else if (extra.perf < 0.45) delta = -1;
+    }
+    const newD = Math.max(1, playedD + delta);
+    if (newD !== playedD) progress.difficulty[n] = newD;
     saveProgress();
+
     window.KrakenAudio.jingle();
     $("complete-stars").textContent = "⭐".repeat(stars) + "☆".repeat(3 - stars);
     $("complete-emoji").textContent = (extra && extra.emoji) || "🎉";
     $("complete-title").textContent = (extra && extra.title) || "Giỏi quá Kraken!";
     $("complete-message").textContent = (extra && extra.message) || "Con đã hoàn thành màn chơi rồi!";
+    let diffHtml = `Con vừa chơi ở <b>Cấp ${playedD}</b>.`;
+    if (delta > 0) diffHtml += `<br>🎉 Lên Cấp ${newD}! Lần sau sẽ khó hơn một chút nhé!`;
+    else if (delta < 0) diffHtml += `<br>Mình quay lại Cấp ${newD} cho dễ hơn nhé 💙`;
+    else diffHtml += `<br>Giữ nguyên Cấp ${playedD} nhé!`;
+    $("complete-diff").innerHTML = diffHtml;
     $("complete-extra").innerHTML = (extra && extra.html) || "";
     $("btn-next").style.display = n >= 5 ? "none" : "";
     show("screen-complete");
@@ -96,6 +147,8 @@ window.Kraken = (function () {
         startLevel(parseInt(btn.getAttribute("data-level"), 10));
       });
     });
+    $("btn-diff-minus").addEventListener("click", () => changeDifficulty(-1));
+    $("btn-diff-plus").addEventListener("click", () => changeDifficulty(1));
     $("btn-home").addEventListener("click", goHome);
     $("btn-complete-home").addEventListener("click", goHome);
     $("btn-replay").addEventListener("click", () => startLevel(currentLevel));

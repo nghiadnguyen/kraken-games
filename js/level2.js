@@ -1,6 +1,8 @@
-/* Màn 2 — Click: bấm vào thùng hàng cứu trợ thả dù từ máy bay trước khi chạm nước */
+/* Màn 2 — Click: bấm vào thùng hàng cứu trợ thả dù từ máy bay trước khi chạm nước
+   Độ khó theo công thức (api.params): tốc độ rơi, nhịp thả, mục tiêu, lắc gió, rơi đôi. */
 window.KrakenLevel2 = function (stage, api) {
-  const GOAL = 15;
+  const P = api.params;
+  const GOAL = P.goal;
   let caught = 0, missed = 0, done = false, raf = null, spawnTimer = null;
   const crates = [];
 
@@ -16,15 +18,20 @@ window.KrakenLevel2 = function (stage, api) {
   function updateHud() { api.hud.textContent = `📦 Đã hứng: ${caught}/${GOAL}`; }
   updateHud();
 
-  function spawnCrate() {
+  function randX() { return window.Kraken.rand(70, Math.max(120, stage.clientWidth - 70)); }
+
+  function createCrate(baseX) {
     if (done) return;
     const el = document.createElement("div");
     el.className = "crate";
     el.innerHTML = `<span class="chute">🪂</span><span class="box">📦</span>`;
-    const x = window.Kraken.rand(70, Math.max(120, stage.clientWidth - 70));
-    el.style.left = x + "px";
-    el.style.top = "-30px";
-    const crate = { el, x, y: -30, speed: window.Kraken.rand(0.55, 0.95), got: false };
+    const crate = {
+      el: el, baseX: baseX, x: baseX, y: -30, age: 0,
+      speed: window.Kraken.rand(P.speedBase * 0.85, P.speedBase * 1.3),
+      swayFreq: window.Kraken.rand(0.025, 0.05), got: false
+    };
+    el.style.left = crate.x + "px";
+    el.style.top = crate.y + "px";
     el.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       if (crate.got || done) return;
@@ -42,12 +49,25 @@ window.KrakenLevel2 = function (stage, api) {
       if (caught >= GOAL) {
         done = true;
         const stars = missed <= 3 ? 3 : missed <= 7 ? 2 : 1;
-        setTimeout(() => api.complete(stars, { message: `Kraken đã hứng đủ ${GOAL} thùng hàng cho tàu chiến! Giỏi lắm! 🚢` }), 600);
+        const perf = (caught + missed) > 0 ? caught / (caught + missed) : 1;
+        setTimeout(() => api.complete(stars, { perf: perf, message: `Kraken đã hứng đủ ${GOAL} thùng hàng cho tàu chiến! Giỏi lắm! 🚢` }), 600);
       }
     });
     stage.appendChild(el);
     crates.push(crate);
-    spawnTimer = setTimeout(spawnCrate, window.Kraken.rand(900, 1700));
+  }
+
+  function spawnCycle() {
+    if (done) return;
+    const x1 = randX();
+    createCrate(x1);
+    if (P.doubleChance > 0 && Math.random() < P.doubleChance) {
+      let x2 = randX(), tries = 0;
+      while (Math.abs(x2 - x1) < 130 && tries++ < 6) x2 = randX();
+      createCrate(x2);
+    }
+    const delay = window.Kraken.rand(P.spawnBaseMs * 0.6, P.spawnBaseMs * 1.05);
+    spawnTimer = setTimeout(spawnCycle, delay);
   }
 
   function loop() {
@@ -60,7 +80,10 @@ window.KrakenLevel2 = function (stage, api) {
     for (let i = crates.length - 1; i >= 0; i--) {
       const c = crates[i];
       if (c.got) { crates.splice(i, 1); continue; }
+      c.age++;
       c.y += c.speed;
+      c.x = c.baseX + (P.swayAmpPx > 0 ? Math.sin(c.age * c.swayFreq * 2.4) * P.swayAmpPx : 0);
+      c.el.style.left = c.x + "px";
       c.el.style.top = c.y + "px";
       if (c.y > h * 0.52 + 60) { // chạm nước
         missed++;
@@ -78,7 +101,7 @@ window.KrakenLevel2 = function (stage, api) {
     if (!done) raf = requestAnimationFrame(loop);
   }
   loop();
-  spawnTimer = setTimeout(spawnCrate, 500);
+  spawnTimer = setTimeout(spawnCycle, 500);
 
   return function cleanup() {
     done = true;

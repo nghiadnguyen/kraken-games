@@ -46,6 +46,10 @@ body {
 .level-name { font-size: 25px; font-weight: bold; }
 .level-skill { font-size: 19px; color: #555; }
 .level-stars { font-size: 26px; min-width: 96px; text-align: right; }
+.level-badge {
+  font-size: 19px; font-weight: bold; color: #fff; background: #3a86ff;
+  border: 3px solid #22223b; border-radius: 999px; padding: 4px 14px; white-space: nowrap;
+}
 .parent-note { font-size: 18px; color: #444; margin-top: 14px; }
 
 /* ---------- khung màn chơi ---------- */
@@ -57,6 +61,15 @@ body {
 }
 .btn-nav:hover { background: #ffe66d; }
 .level-hud { font-size: 24px; font-weight: bold; min-width: 170px; text-align: right; }
+.level-diff { display: flex; align-items: center; gap: 8px; }
+.level-diff #diff-label { font-size: 24px; font-weight: bold; white-space: nowrap; min-width: 74px; text-align: center; }
+.btn-diff {
+  width: 48px; height: 48px; font-size: 30px; font-weight: bold; line-height: 1;
+  font-family: inherit; cursor: pointer; border-radius: 50%;
+  border: 3px solid #22223b; background: #ffe66d; color: #22223b;
+}
+.btn-diff:hover { background: #ffd60a; }
+.btn-diff:disabled { opacity: .35; cursor: default; }
 .level-instruction { text-align: center; font-size: 24px; font-weight: bold; margin: 10px auto 12px; max-width: 1000px; }
 .level-stage {
   position: relative; max-width: 1100px; height: 560px; margin: 0 auto;
@@ -69,6 +82,7 @@ body {
 .complete-emoji { font-size: 96px; animation: bob 1.6s ease-in-out infinite; }
 .complete-inner h2 { font-size: 44px; margin: 6px 0; }
 #complete-message { font-size: 24px; }
+.complete-diff { font-size: 23px; font-weight: bold; color: #023047; margin: 6px 0 0; line-height: 1.45; }
 .complete-stars { font-size: 62px; letter-spacing: 8px; margin: 8px 0 4px; animation: starpop .6s ease; }
 @keyframes starpop { 0% { transform: scale(.3); } 70% { transform: scale(1.25); } 100% { transform: scale(1); } }
 .complete-buttons { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
@@ -115,6 +129,14 @@ body {
 .sort-zone .zone-name { font-size: 21px; font-weight: bold; display: block; }
 .sort-zone.zone-over { border-style: solid; background: #fff3b0; transform: scale(1.02); }
 .sort-zone .zone-parked { display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; padding: 2px; }
+.sort-zone .zone-slots { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; padding: 6px 4px 2px; }
+.sort-zone .slot {
+  width: 58px; height: 42px; border: 3px dashed #888; border-radius: 10px;
+  background: rgba(255,255,255,.45); display: flex; align-items: center; justify-content: center;
+}
+.sort-zone .slot.filled { border-style: solid; border-color: #2a9d8f; background: rgba(255,255,255,.85); }
+.sort-zone .slot .parked-icon { display: block; width: 52px; height: 36px; }
+.sort-zone .slot .parked-icon svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .sort-zone .zone-parked .parked-icon { display: inline-block; width: 58px; height: 38px; }
 .sort-zone .zone-parked .parked-icon svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .drag-item { position: absolute; width: 112px; height: 78px; z-index: 10; cursor: grab; line-height: 1; padding: 4px; touch-action: none; }

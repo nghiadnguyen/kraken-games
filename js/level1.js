@@ -1,10 +1,14 @@
-/* Màn 1 — Di chuột: Kraken bơi theo chuột, chạm vào bong bóng / vỏ sò / kho báu */
+/* Màn 1 — Di chuột: Kraken bơi theo chuột, chạm vào bong bóng / vỏ sò / kho báu
+   Độ khó theo công thức (api.params): số món, cỡ món, tỉ lệ món trôi + tốc độ trôi. */
 window.KrakenLevel1 = function (stage, api) {
-  const TOTAL = 20, MAX_ON_SCREEN = 6;
+  const P = api.params;
+  const TOTAL = P.count, MAX_ON_SCREEN = 6;
   const ITEMS = ["🫧", "🫧", "🐚", "⭐", "🪙", "💎", "🐠", "🦀"];
   let collected = 0, spawned = 0, done = false, raf = null;
   let mouseX = stage.clientWidth / 2, mouseY = stage.clientHeight / 2;
   let kx = mouseX, ky = mouseY;
+  const items = []; // {el,x,y,vx,vy,moving,got}
+  const t0 = performance.now();
 
   stage.classList.add("sea-stage");
   stage.innerHTML = `
@@ -22,27 +26,45 @@ window.KrakenLevel1 = function (stage, api) {
     const el = document.createElement("div");
     el.className = "sea-item";
     el.textContent = ITEMS[Math.floor(Math.random() * ITEMS.length)];
+    el.style.fontSize = P.sizePx + "px";
     const w = stage.clientWidth, h = stage.clientHeight;
-    el.style.left = window.Kraken.rand(20, Math.max(60, w - 120)) + "px";
-    el.style.top = window.Kraken.rand(95, Math.max(140, h - 160)) + "px";
-    el.addEventListener("pointerenter", () => collect(el));
+    const size = P.sizePx + 16;
+    const it = {
+      el: el, got: false,
+      x: window.Kraken.rand(20, Math.max(60, w - 40 - size)),
+      y: window.Kraken.rand(95, Math.max(140, h - 80 - size)),
+      moving: P.moveSpeed > 0 && Math.random() < P.movingFrac,
+      vx: 0, vy: 0
+    };
+    if (it.moving) {
+      const ang = Math.random() * Math.PI * 2;
+      it.vx = Math.cos(ang) * P.moveSpeed;
+      it.vy = Math.sin(ang) * P.moveSpeed;
+    }
+    el.style.left = it.x + "px";
+    el.style.top = it.y + "px";
+    el.addEventListener("pointerenter", () => collect(it));
     stage.appendChild(el);
+    items.push(it);
   }
-  function collect(el) {
-    if (done || el.dataset.got) return;
-    el.dataset.got = "1";
+  function collect(it) {
+    if (done || it.got) return;
+    it.got = true;
+    const el = it.el;
     window.KrakenAudio.pop();
     el.classList.add("collected-pop");
-    const r = el.getBoundingClientRect(), sr = stage.getBoundingClientRect();
-    window.Kraken.floatText(stage, r.left - sr.left + 30, r.top - sr.top, "🎉 +1");
+    window.Kraken.floatText(stage, it.x + 30, it.y, "🎉 +1");
     setTimeout(() => el.remove(), 280);
     collected++; updateHud();
     if (collected >= TOTAL) {
       done = true;
-      setTimeout(() => api.complete(3, { message: "Con đã nhặt hết kho báu dưới biển! Kraken bơi rất khéo! 🐙" }), 500);
+      const actualSec = Math.max(1, (performance.now() - t0) / 1000);
+      const parTime = 10 + TOTAL * 1.6;
+      const perf = Math.max(0, Math.min(1, parTime / actualSec));
+      setTimeout(() => api.complete(3, { perf: perf, message: "Con đã nhặt hết kho báu dưới biển! Kraken bơi rất khéo! 🐙" }), 500);
     } else {
       setTimeout(spawnItem, 250);
-      if (stage.querySelectorAll(".sea-item:not([data-got])").length < 3) setTimeout(spawnItem, 450);
+      if (items.filter(i => !i.got).length < 3) setTimeout(spawnItem, 450);
     }
   }
 
@@ -55,6 +77,17 @@ window.KrakenLevel1 = function (stage, api) {
   function loop() {
     kx += (mouseX - kx) * 0.16; ky += (mouseY - ky) * 0.16;
     kraken.style.left = kx + "px"; kraken.style.top = ky + "px";
+    // món trôi: di chuyển + nảy tường trong vùng nước
+    const w = stage.clientWidth, h = stage.clientHeight, size = P.sizePx + 16;
+    for (const it of items) {
+      if (it.got || !it.moving) continue;
+      it.x += it.vx; it.y += it.vy;
+      if (it.x < 8) { it.x = 8; it.vx = Math.abs(it.vx); }
+      if (it.x > w - size - 8) { it.x = w - size - 8; it.vx = -Math.abs(it.vx); }
+      if (it.y < 88) { it.y = 88; it.vy = Math.abs(it.vy); }
+      if (it.y > h - size - 64) { it.y = h - size - 64; it.vy = -Math.abs(it.vy); }
+      it.el.style.left = it.x + "px"; it.el.style.top = it.y + "px";
+    }
     raf = requestAnimationFrame(loop);
   }
   loop();

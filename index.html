@@ -51,30 +51,35 @@
         <span class="level-text"><span class="level-name">Màn 1: Lặn Biển Tìm Kho Báu</span>
         <span class="level-skill">Luyện: Di chuột</span></span>
         <span class="level-stars" data-stars-for="1"></span>
+        <span class="level-badge" data-diff-for="1">Cấp 1</span>
       </button>
       <button class="level-btn" data-level="2">
         <span class="level-icon">🪂</span>
         <span class="level-text"><span class="level-name">Màn 2: Hứng Hàng Cứu Trợ</span>
         <span class="level-skill">Luyện: Bấm chuột (click)</span></span>
         <span class="level-stars" data-stars-for="2"></span>
+        <span class="level-badge" data-diff-for="2">Cấp 1</span>
       </button>
       <button class="level-btn" data-level="3">
         <span class="level-icon">🚗</span>
         <span class="level-text"><span class="level-name">Màn 3: Xếp Xe, Máy Bay, Tàu Chiến</span>
         <span class="level-skill">Luyện: Kéo và thả</span></span>
         <span class="level-stars" data-stars-for="3"></span>
+        <span class="level-badge" data-diff-for="3">Cấp 1</span>
       </button>
       <button class="level-btn" data-level="4">
         <span class="level-icon">🏎️</span>
         <span class="level-text"><span class="level-name">Màn 4: Đua Xe Ăn Xu Vàng</span>
         <span class="level-skill">Luyện: Giữ chuột và lái theo đường</span></span>
         <span class="level-stars" data-stars-for="4"></span>
+        <span class="level-badge" data-diff-for="4">Cấp 1</span>
       </button>
       <button class="level-btn" data-level="5">
         <span class="level-icon">⚽</span>
         <span class="level-text"><span class="level-name">Màn 5: Kraken Sút Phạt — Tiền Đạo Số 7</span>
         <span class="level-skill">Luyện: Ngắm, giữ chuột nạp lực, thả ra sút!</span></span>
         <span class="level-stars" data-stars-for="5"></span>
+        <span class="level-badge" data-diff-for="5">Cấp 1</span>
       </button>
     </nav>
 
@@ -87,6 +92,11 @@
   <header class="level-header">
     <button id="btn-home" class="btn-nav">🏠 Về trang chủ</button>
     <h2 id="level-title">Màn chơi</h2>
+    <div class="level-diff" title="Độ khó của màn này">
+      <button id="btn-diff-minus" class="btn-diff" aria-label="Giảm độ khó">−</button>
+      <span id="diff-label">Cấp 1</span>
+      <button id="btn-diff-plus" class="btn-diff" aria-label="Tăng độ khó">+</button>
+    </div>
     <div id="level-hud" class="level-hud"></div>
   </header>
   <p id="level-instruction" class="level-instruction"></p>
@@ -100,6 +110,7 @@
     <h2 id="complete-title">Giỏi quá Kraken!</h2>
     <p id="complete-message">Con đã hoàn thành màn chơi!</p>
     <div id="complete-stars" class="complete-stars">⭐⭐⭐</div>
+    <p id="complete-diff" class="complete-diff"></p>
     <div id="complete-extra"></div>
     <div class="complete-buttons">
       <button id="btn-replay" class="btn-big btn-blue">🔁 Chơi lại</button>
@@ -110,6 +121,7 @@
 </main>
 
 <script src="js/audio.js"></script>
+<script src="js/difficulty.js"></script>
 <script src="js/main.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/level1.js"></script>
