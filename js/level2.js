@@ -7,7 +7,7 @@ window.KrakenLevel2 = function (stage, api) {
   stage.classList.add("sky-stage");
   stage.innerHTML = `
     <div class="sky-plane" id="l2-plane">✈️</div>
-    <div class="sky-ship" id="l2-ship">🚢</div>`;
+    <div class="sky-ship" id="l2-ship">${window.KrakenIcons.warship()}</div>`;
   const plane = stage.querySelector("#l2-plane");
   const ship = stage.querySelector("#l2-ship");
   ship.style.left = "42%";

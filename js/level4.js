@@ -9,7 +9,7 @@ window.KrakenLevel4 = function (stage, api) {
   stage.innerHTML = `
     <canvas class="race-canvas" id="l4-canvas"></canvas>
     <div class="race-hint" id="l4-hint">🚦 Nhấn GIỮ chuột để xe chạy theo chuột của con!</div>
-    <div class="race-car" id="l4-car">🏎️</div>`;
+    <div class="race-car" id="l4-car">${window.KrakenIcons.raceCar()}</div>`;
   const canvas = stage.querySelector("#l4-canvas");
   const ctx = canvas.getContext("2d");
   const carEl = stage.querySelector("#l4-car");
@@ -18,9 +18,22 @@ window.KrakenLevel4 = function (stage, api) {
   function updateHud() { api.hud.textContent = `🪙 Xu vàng: ${coinsGot}/${COIN_TOTAL}`; }
   updateHud();
 
-  // đường đua: các điểm điều khiển (tỉ lệ theo kích thước sân)
-  const CTRL = [[0.05,0.52],[0.18,0.26],[0.33,0.55],[0.46,0.28],[0.60,0.58],[0.73,0.32],[0.86,0.55],[0.95,0.45]];
-  let samples = [], coins = [], car = { x: 0, y: 0 }, endPoint = { x: 0, y: 0 }, trackCanvas = null;
+  // đường đua NGẪU NHIÊN mỗi lần chơi: 9–11 điểm điều khiển, x tăng dần đều,
+  // y lúc lên lúc xuống với biên độ lớn + nhiễu ngẫu nhiên trong vùng an toàn
+  function genCtrl() {
+    const n = window.Kraken.randInt(9, 11);
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const fx = 0.05 + 0.90 * (i / (n - 1));
+      let fy;
+      if (i === 0 || i === n - 1) fy = window.Kraken.rand(0.44, 0.56);        // đầu/cuối ở giữa cho dễ
+      else if (i % 2 === 1) fy = window.Kraken.rand(0.17, 0.32);              // điểm cao (lên)
+      else fy = window.Kraken.rand(0.64, 0.80);                               // điểm thấp (xuống)
+      pts.push([fx, fy]);
+    }
+    return pts;
+  }
+  let samples = [], coins = [], car = { x: 0, y: 0, angle: 0 }, endPoint = { x: 0, y: 0 }, trackCanvas = null;
 
   function catmull(p0, p1, p2, p3, t) {
     const t2 = t * t, t3 = t2 * t;
@@ -29,19 +42,26 @@ window.KrakenLevel4 = function (stage, api) {
   function buildTrack() {
     const w = stage.clientWidth, h = stage.clientHeight;
     canvas.width = w; canvas.height = h;
-    const pts = CTRL.map(p => ({ x: p[0] * w, y: p[1] * h }));
+    const pts = genCtrl().map(p => ({ x: p[0] * w, y: p[1] * h }));
+    window.__l4ctrl = pts;
     samples = [];
     for (let i = 0; i < pts.length - 1; i++) {
       const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
       for (let t = 0; t < 1; t += 0.02) samples.push({ x: catmull(p0.x, p1.x, p2.x, p3.x, t), y: catmull(p0.y, p1.y, p2.y, p3.y, t) });
     }
     samples.push({ ...pts[pts.length - 1] });
+    window.__l4samples = samples;
     endPoint = samples[samples.length - 1];
-    car = { x: samples[0].x, y: samples[0].y };
-    target = { ...car };
+    const startAngle = Math.atan2(samples[1].y - samples[0].y, samples[1].x - samples[0].x) * 180 / Math.PI;
+    car = { x: samples[0].x, y: samples[0].y, angle: startAngle };
+    target = { x: car.x, y: car.y };
+    // xu đặt ở các vị trí ngẫu nhiên dọc đường (không trùng nhau)
     coins = [];
+    const usedIdx = new Set();
     for (let i = 0; i < COIN_TOTAL; i++) {
-      const idx = Math.floor(samples.length * (0.12 + 0.8 * (i / COIN_TOTAL)));
+      let idx = Math.floor(samples.length * window.Kraken.rand(0.10, 0.92));
+      while (usedIdx.has(idx)) idx = (idx + 7) % samples.length;
+      usedIdx.add(idx);
       coins.push({ x: samples[idx].x, y: samples[idx].y, got: false });
     }
     // vẽ đường tĩnh ra canvas phụ
@@ -75,10 +95,22 @@ window.KrakenLevel4 = function (stage, api) {
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (trackCanvas) ctx.drawImage(trackCanvas, 0, 0);
-    ctx.font = "38px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    coins.forEach(c => { if (!c.got) ctx.fillText("🪙", c.x, c.y); });
+    // xu VÀNG vẽ bằng canvas: vòng tròn gradient vàng + sao ở giữa
+    coins.forEach(c => {
+      if (c.got) return;
+      const g = ctx.createRadialGradient(c.x - 5, c.y - 5, 2, c.x, c.y, 17);
+      g.addColorStop(0, "#fff3b0"); g.addColorStop(0.55, "#ffd60a"); g.addColorStop(1, "#e0a800");
+      ctx.beginPath(); ctx.arc(c.x, c.y, 16, 0, Math.PI * 2);
+      ctx.fillStyle = g; ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = "#b8860b"; ctx.stroke();
+      ctx.font = "bold 16px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = "#8a6108"; ctx.fillText("★", c.x, c.y + 1);
+    });
   }
-  function placeCar() { carEl.style.left = car.x + "px"; carEl.style.top = car.y + "px"; }
+  function placeCar() {
+    carEl.style.left = car.x + "px"; carEl.style.top = car.y + "px";
+    carEl.style.transform = `translate(-50%,-50%) rotate(${car.angle}deg)`;
+  }
 
   function loop() {
     if (done) return;
@@ -86,6 +118,10 @@ window.KrakenLevel4 = function (stage, api) {
       const dx = target.x - car.x, dy = target.y - car.y;
       const d = Math.hypot(dx, dy);
       if (d > 2) {
+        // xoay xe theo hướng chạy thật (nội suy góc cho mượt, đi vòng cung ngắn nhất)
+        const desired = Math.atan2(dy, dx) * 180 / Math.PI;
+        let diff = ((desired - car.angle + 540) % 360) - 180;
+        car.angle += diff * 0.25;
         const onTrack = distToTrack(car.x, car.y) < 58;
         const speed = onTrack ? 6.2 : 2.1; // ra khỏi đường chỉ chạy chậm lại, không phạt
         const step = Math.min(speed, d);

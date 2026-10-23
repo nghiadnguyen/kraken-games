@@ -1,9 +1,10 @@
 /* Màn 3 — Kéo & thả: xếp ô tô / máy bay chiến đấu / tàu chiến về đúng nơi (pointer events) */
 window.KrakenLevel3 = function (stage, api) {
+  const I = window.KrakenIcons;
   const VEHICLES = [
-    { icon: "🚗", type: "car" }, { icon: "🚙", type: "car" }, { icon: "🚕", type: "car" },
-    { icon: "✈️", type: "jet" }, { icon: "🛩️", type: "jet" }, { icon: "🚀", type: "jet" },
-    { icon: "🚢", type: "ship" }, { icon: "🛳️", type: "ship" }, { icon: "⛴️", type: "ship" }
+    { icon: I.car("#e63946"), type: "car" }, { icon: I.car("#3a86ff"), type: "car" }, { icon: I.car("#ffbe0b"), type: "car" },
+    { icon: I.jet("#7f8ea3"), type: "jet" }, { icon: I.jet("#2a9d8f"), type: "jet" }, { icon: I.jet("#e76f51"), type: "jet" },
+    { icon: I.warship("#5b6b7f"), type: "ship" }, { icon: I.warship("#3a6ea5"), type: "ship" }, { icon: I.warship("#6a994e"), type: "ship" }
   ];
   const TOTAL = VEHICLES.length;
   let parked = 0, wrong = 0, done = false;
@@ -27,7 +28,8 @@ window.KrakenLevel3 = function (stage, api) {
   shuffled.forEach((v, i) => {
     const el = document.createElement("div");
     el.className = "drag-item";
-    el.textContent = v.icon;
+    el.innerHTML = v.icon;
+    el._svg = v.icon;
     el.dataset.type = v.type;
     const col = i % 5, row = Math.floor(i / 5);
     el.style.left = (30 + col * (stage.clientWidth - 160) / 4) + "px";
@@ -65,7 +67,8 @@ window.KrakenLevel3 = function (stage, api) {
       if (hit && hit.dataset.type === el.dataset.type) {
         el.classList.add("parked");
         const span = document.createElement("span");
-        span.textContent = el.textContent;
+        span.className = "parked-icon";
+        span.innerHTML = el._svg;
         hit.querySelector(".zone-parked").appendChild(span);
         const zr = hit.getBoundingClientRect(), sr = stage.getBoundingClientRect();
         window.Kraken.floatText(stage, zr.left - sr.left + zr.width / 2, zr.top - sr.top + 20, "Đúng nhà rồi! 🎉");

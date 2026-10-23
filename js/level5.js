@@ -7,10 +7,10 @@ window.KrakenLevel5 = function (stage, api) {
 
   stage.classList.add("pitch-stage");
   stage.innerHTML = `
-    <div class="goal" id="l5-goal"><div class="keeper" id="l5-keeper">🤖</div></div>
+    <div class="goal" id="l5-goal"><div class="keeper" id="l5-keeper">${window.KrakenIcons.goalkeeper()}</div></div>
     <div class="aim" id="l5-aim">🎯</div>
     <div class="ball" id="l5-ball">⚽</div>
-    <div class="striker"><span class="octo">🐙</span><span class="jersey">7</span></div>
+    <div class="striker" id="l5-striker">${window.KrakenIcons.striker()}</div>
     <div class="power-wrap">
       <div class="power-label">Lực sút 💪</div>
       <div class="power-bar"><div class="power-fill" id="l5-power"></div></div>
@@ -72,7 +72,8 @@ window.KrakenLevel5 = function (stage, api) {
     window.KrakenAudio.kick();
     const over = power > 75;
     const tooWeak = power < 30;
-    const saved = !over && Math.abs(aim.x - keeperX) < (tooWeak ? 95 : 52);
+    // thủ môn người to (~140px ngang, sải tay rộng) nên vùng bắt bóng khớp hình: ~70px mỗi bên
+    const saved = !over && Math.abs(aim.x - keeperX) < (tooWeak ? 92 : 70);
     const isGoal = !over && !saved;
     const target = over ? { x: aim.x, y: 6 } : { x: aim.x, y: aim.y };
     ball.style.transition = "all .38s ease-in";
@@ -107,10 +108,10 @@ window.KrakenLevel5 = function (stage, api) {
     if (goals >= NEED_GOALS) {
       const overlay = document.createElement("div");
       overlay.className = "siuuu";
-      overlay.innerHTML = `<div class="cup">🏆</div><div class="big">SIUUU!</div><div class="sub">Kraken ghi ${goals} bàn và giành Cúp Vàng! ⚽</div>`;
+      overlay.innerHTML = `<div class="cup">🏆</div><div class="big">SIUUU!</div><div class="sub">Ronaldo ghi ${goals} bàn và giành Cúp Vàng! ⚽</div>`;
       stage.appendChild(overlay);
       window.KrakenAudio.jingle();
-      setTimeout(() => api.complete(3, { emoji: "🏆", title: "SIUUU! Kraken vô địch!", message: `Tiền đạo số 7 Kraken đã ghi ${goals}/${TOTAL_SHOTS} bàn thắng!` }), 3000);
+      setTimeout(() => api.complete(3, { emoji: "🏆", title: "SIUUU! Ronaldo vô địch!", message: `Tiền đạo Ronaldo số 7 đã ghi ${goals}/${TOTAL_SHOTS} bàn thắng!` }), 3000);
     } else {
       const stars = goals === 2 ? 2 : 1;
       setTimeout(() => api.complete(stars, { emoji: "⚽", title: "Kraken sút rất cố gắng!", message: `Con ghi được ${goals}/${TOTAL_SHOTS} bàn. Chơi lại để ghi ${NEED_GOALS} bàn giành Cúp Vàng nhé!` }), 500);
