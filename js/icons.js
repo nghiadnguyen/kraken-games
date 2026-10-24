@@ -127,5 +127,52 @@ window.KrakenIcons = (function () {
       <circle cx="63" cy="30" r="3.5" fill="#f2c297"/><circle cx="97" cy="30" r="3.5" fill="#f2c297"/>`);
   }
 
-  return { warship, car, jet, raceCar, goalkeeper, striker };
+  /* Ronaldo CHẠY — nhìn nghiêng, mặt hướng PHẢI, đang chạy ăn mừng (dùng cho animation SIUUU).
+     Áo đỏ số 7 trắng, quần trắng. viewBox 200x160, mặt đất ở y≈148. Hình vẽ tự vẽ, không dùng ảnh thật. */
+  function ronaldoRun() {
+    return svg("0 0 200 160", `
+      <path d="M96 40 L72 60 L82 84" fill="none" stroke="#b00524" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="83" cy="86" r="5.5" fill="#f2c297"/>
+      <path d="M100 88 L76 116 L88 140" fill="none" stroke="#f2c297" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M81 124 L88 140" fill="none" stroke="#d90429" stroke-width="13" stroke-linecap="round"/>
+      <ellipse cx="93" cy="143" rx="10" ry="5" fill="#111111"/>
+      <path d="M92 34 L128 38 L132 82 L98 80 Z" fill="#d90429" stroke="#9d0208" stroke-width="2"/>
+      <text x="112" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#ffffff">7</text>
+      <path d="M94 76 L134 78 L138 104 L112 106 L110 90 L100 104 L88 100 Z" fill="#ffffff" stroke="#ced4da" stroke-width="2"/>
+      <path d="M116 100 L148 112 L156 138" fill="none" stroke="#f2c297" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M151 122 L156 138" fill="none" stroke="#d90429" stroke-width="12" stroke-linecap="round"/>
+      <ellipse cx="161" cy="141" rx="10" ry="5" fill="#111111"/>
+      <path d="M124 40 L146 56" fill="none" stroke="#d90429" stroke-width="13" stroke-linecap="round"/>
+      <path d="M146 56 L135 80" fill="none" stroke="#f2c297" stroke-width="11" stroke-linecap="round"/>
+      <circle cx="134" cy="82" r="5.5" fill="#f2c297"/>
+      <rect x="112" y="26" width="11" height="12" fill="#f2c297"/>
+      <circle cx="121" cy="17" r="13" fill="#f2c297"/>
+      <path d="M108 16 Q107 3 121 3 Q134 3 134 17 Q129 8 120 8 Q111 9 108 16 Z" fill="#171310"/>`);
+  }
+
+  /* Ronaldo TRƯỢT CỎ ăn mừng — nhìn nghiêng hướng phải, người ngả ra sau, 2 đầu gối trượt trên cỏ,
+     2 tay giơ cao. Áo đỏ số 7. viewBox 200x160, mặt đất ở y≈148. Hình vẽ tự vẽ, không dùng ảnh thật. */
+  function ronaldoSlide() {
+    return svg("0 0 200 160", `
+      <path d="M54 62 L32 38 L26 14" fill="none" stroke="#d90429" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M32 38 L26 14" fill="none" stroke="#f2c297" stroke-width="10" stroke-linecap="round"/>
+      <circle cx="25" cy="11" r="5.5" fill="#f2c297"/>
+      <path d="M96 116 L140 140 L176 143" fill="none" stroke="#f2c297" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M156 141 L176 143" fill="none" stroke="#d90429" stroke-width="12" stroke-linecap="round"/>
+      <ellipse cx="182" cy="143" rx="10" ry="4.5" fill="#111111"/>
+      <path d="M88 124 L128 146 L162 148" fill="none" stroke="#f2c297" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M144 147 L162 148" fill="none" stroke="#d90429" stroke-width="12" stroke-linecap="round"/>
+      <ellipse cx="168" cy="148" rx="10" ry="4.5" fill="#111111"/>
+      <path d="M44 60 L68 54 L110 108 L86 126 Z" fill="#d90429" stroke="#9d0208" stroke-width="2"/>
+      <text x="76" y="102" text-anchor="middle" font-family="Arial, sans-serif" font-size="26" font-weight="bold" fill="#ffffff" transform="rotate(-38 76 102)">7</text>
+      <path d="M84 102 L122 106 L126 128 L96 134 L90 118 Z" fill="#ffffff" stroke="#ced4da" stroke-width="2"/>
+      <path d="M62 58 L70 30 L88 12" fill="none" stroke="#d90429" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M70 30 L88 12" fill="none" stroke="#f2c297" stroke-width="10" stroke-linecap="round"/>
+      <circle cx="90" cy="9" r="5.5" fill="#f2c297"/>
+      <rect x="50" y="58" width="11" height="11" fill="#f2c297" transform="rotate(-30 55 63)"/>
+      <circle cx="47" cy="50" r="13" fill="#f2c297"/>
+      <path d="M34 48 Q33 35 47 35 Q60 35 60 49 Q55 40 46 40 Q37 41 34 48 Z" fill="#171310"/>`);
+  }
+
+  return { warship, car, jet, raceCar, goalkeeper, striker, ronaldoRun, ronaldoSlide };
 })();

@@ -111,15 +111,148 @@ window.KrakenLevel5 = function (stage, api) {
     }, 420);
   }
 
+  /* ===== Ăn mừng SIUUU (chỉ khi thắng): Ronaldo chạy -> trượt cỏ -> overlay -> hoàn thành =====
+     Timeline bằng requestAnimationFrame, vị trí tính theo tỉ lệ sân (co giãn theo responsive stage).
+     Bấm vào sân bất cứ lúc nào = bỏ qua, vào thẳng màn hoàn thành. api.complete chỉ gọi đúng 1 lần. */
+  const ACTOR_W = 200, ACTOR_H = 160;
+  let celebRaf = null, celebEls = [], celebOverlay = null, celebrating = false, celebDone = false;
+
+  function winComplete() {
+    if (celebDone) return;
+    celebDone = true;
+    api.complete(3, { goals: goals, needGoals: NEED_GOALS, emoji: "🏆", title: "SIUUU! Ronaldo vô địch!", message: `Tiền đạo Ronaldo số 7 đã ghi ${goals}/${TOTAL_SHOTS} bàn thắng!` });
+  }
+  function teardownCeleb() {
+    celebrating = false;
+    if (celebRaf) { cancelAnimationFrame(celebRaf); celebRaf = null; }
+    celebEls.forEach(el => el.remove()); celebEls = [];
+    if (celebOverlay) { celebOverlay.remove(); celebOverlay = null; }
+    stage.removeEventListener("pointerdown", onSkipCeleb);
+  }
+  function onSkipCeleb() {
+    if (!celebrating) return;
+    teardownCeleb();
+    winComplete();
+  }
+  function startCelebration() {
+    celebrating = true; celebDone = false;
+    stage.addEventListener("pointerdown", onSkipCeleb);
+    const W = stage.clientWidth, H = stage.clientHeight;
+    const groundBottom = 12;                    // chân/gối cách đáy sân
+    const groundY = H - groundBottom;           // y mặt cỏ (tọa độ sân)
+    const runFrom = W * 0.30, runTo = W * 0.72; // tâm nhân vật: chạy 30% -> 72%
+    const slideDist = W * 0.13;                 // trượt thêm 13% bề ngang
+    const RUN_MS = 1400, SLIDE_MS = 1200, HOLD_MS = 1600;
+    const kneeOff = ACTOR_W * 0.68;             // vị trí đầu gối trong khung nhân vật khi trượt
+
+    const strikerEl = stage.querySelector("#l5-striker");
+    if (strikerEl) strikerEl.style.visibility = "hidden";
+    ball.style.visibility = "hidden";
+    const powerWrap = stage.querySelector(".power-wrap");
+    if (powerWrap) { powerWrap.style.transition = "opacity .4s"; powerWrap.style.opacity = "0.3"; }
+
+    const skid = document.createElement("div");
+    skid.className = "skid"; skid.style.opacity = "0";
+    stage.appendChild(skid); celebEls.push(skid);
+
+    const actor = document.createElement("div");
+    actor.className = "celeb-actor";
+    actor.innerHTML = window.KrakenIcons.ronaldoRun();
+    actor.style.left = (runFrom - ACTOR_W / 2) + "px";
+    actor.style.top = (groundY - ACTOR_H) + "px";
+    stage.appendChild(actor); celebEls.push(actor);
+
+    const particles = [];
+    function spawnGrass() {
+      const kx = runTo - ACTOR_W / 2 + kneeOff, ky = groundY - 4;
+      const greens = ["#2d6a4f", "#40916c", "#52b788", "#74c69d"];
+      for (let i = 0; i < 26; i++) {
+        const el = document.createElement("div");
+        el.className = "grass-bit";
+        const s = 5 + Math.random() * 6;
+        el.style.width = s + "px"; el.style.height = (s * 0.6) + "px";
+        el.style.background = greens[i % greens.length];
+        el.style.left = kx + "px"; el.style.top = ky + "px";
+        stage.appendChild(el); celebEls.push(el);
+        particles.push({
+          el, x: kx, y: ky,
+          vx: -(30 + Math.random() * 150), vy: -(60 + Math.random() * 210),
+          age: 0, life: 0.7 + Math.random() * 0.45
+        });
+      }
+    }
+    function updateParticles(dt) {
+      for (const p of particles) {
+        if (p.age >= p.life) continue;
+        p.age += dt;
+        if (p.age >= p.life) { p.el.remove(); continue; }
+        p.vy += 720 * dt;
+        p.x += p.vx * dt; p.y += p.vy * dt;
+        p.el.style.left = p.x + "px"; p.el.style.top = p.y + "px";
+        p.el.style.opacity = String(Math.max(0, 1 - p.age / p.life));
+        p.el.style.transform = `rotate(${p.age * 260}deg)`;
+      }
+    }
+
+    let slid = false, overlayShown = false, lastNow = null;
+    const tStart = performance.now();
+    function celebFrame(now) {
+      if (!celebrating) return;
+      const dt = lastNow == null ? 0.016 : Math.min(0.05, (now - lastNow) / 1000);
+      lastNow = now;
+      const t = now - tStart;
+      if (t < RUN_MS) {
+        const p = t / RUN_MS;
+        const e = Math.pow(p, 1.6);                       // tăng tốc dần (ease-in)
+        const cx = runFrom + (runTo - runFrom) * e;
+        const bob = -Math.abs(Math.sin(t / 95)) * 10;     // nhún theo nhịp chạy
+        const rock = Math.sin(t / 95) * 3;
+        actor.style.left = (cx - ACTOR_W / 2) + "px";
+        actor.style.top = (groundY - ACTOR_H + bob) + "px";
+        actor.style.transform = `rotate(${rock}deg)`;
+      } else if (t < RUN_MS + SLIDE_MS) {
+        if (!slid) {
+          slid = true;
+          actor.classList.add("slide");
+          actor.innerHTML = window.KrakenIcons.ronaldoSlide();
+          actor.style.transform = "rotate(0deg)";
+          actor.style.top = (groundY - ACTOR_H) + "px";
+          window.KrakenAudio.whoosh();
+          window.KrakenAudio.jingle();
+          skid.style.left = (runTo - ACTOR_W / 2 + kneeOff) + "px";
+          skid.style.top = (groundY - 4) + "px";
+          skid.style.width = "8px";
+          skid.style.opacity = "1";
+          spawnGrass();
+        }
+        const p = (t - RUN_MS) / SLIDE_MS;
+        const e = 1 - Math.pow(1 - p, 3);                 // easeOutCubic: trượt chậm dần
+        const cx = runTo + slideDist * e;
+        actor.style.left = (cx - ACTOR_W / 2) + "px";
+        skid.style.width = (slideDist * e + 14) + "px";
+      } else if (t < RUN_MS + SLIDE_MS + HOLD_MS) {
+        if (!overlayShown) {
+          overlayShown = true;
+          celebOverlay = document.createElement("div");
+          celebOverlay.className = "siuuu";
+          celebOverlay.innerHTML = `<div class="cup">🏆</div><div class="big">SIUUU!</div><div class="sub">Ronaldo ghi ${goals} bàn và giành Cúp Vàng! ⚽</div>`;
+          stage.appendChild(celebOverlay);
+        }
+      } else {
+        teardownCeleb();
+        winComplete();
+        return;
+      }
+      updateParticles(dt);
+      celebRaf = requestAnimationFrame(celebFrame);
+    }
+    celebRaf = requestAnimationFrame(celebFrame);
+  }
+
   function finish() {
     done = true;
     if (goals >= NEED_GOALS) {
-      const overlay = document.createElement("div");
-      overlay.className = "siuuu";
-      overlay.innerHTML = `<div class="cup">🏆</div><div class="big">SIUUU!</div><div class="sub">Ronaldo ghi ${goals} bàn và giành Cúp Vàng! ⚽</div>`;
-      stage.appendChild(overlay);
-      window.KrakenAudio.jingle();
-      setTimeout(() => api.complete(3, { goals: goals, needGoals: NEED_GOALS, emoji: "🏆", title: "SIUUU! Ronaldo vô địch!", message: `Tiền đạo Ronaldo số 7 đã ghi ${goals}/${TOTAL_SHOTS} bàn thắng!` }), 3000);
+      startCelebration();
     } else {
       const stars = goals >= NEED_GOALS - 1 ? 2 : 1;
       setTimeout(() => api.complete(stars, { goals: goals, needGoals: NEED_GOALS, emoji: "⚽", title: "Kraken sút rất cố gắng!", message: `Con ghi được ${goals}/${TOTAL_SHOTS} bàn. Chơi lại để ghi ${NEED_GOALS} bàn giành Cúp Vàng nhé!` }), 500);
@@ -133,6 +266,7 @@ window.KrakenLevel5 = function (stage, api) {
 
   return function cleanup() {
     done = true;
+    teardownCeleb();
     if (raf) cancelAnimationFrame(raf);
     stage.removeEventListener("pointermove", onMove);
     stage.removeEventListener("pointerdown", onDown);

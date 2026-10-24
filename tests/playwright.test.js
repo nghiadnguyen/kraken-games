@@ -162,7 +162,7 @@ async function goHome(page) { await page.click("#btn-home"); await sleep(400); }
       await page.mouse.down(); await sleep(480); await page.mouse.up();
       await sleep(1500);
     }
-    await page.waitForSelector("#screen-complete:not(.hidden)", { timeout: 12000 });
+    await page.waitForSelector("#screen-complete:not(.hidden)", { timeout: 20000 });
     const msg = await page.locator("#complete-message").innerText();
     const m = msg.match(/(\d+)\/5/);
     const goals = m ? parseInt(m[1], 10) : -1;
@@ -304,6 +304,91 @@ async function goHome(page) { await page.click("#btn-home"); await sleep(400); }
     ok(finished, "L4 lái theo đường tới cờ đích -> hiện màn hoàn thành");
     await page.mouse.up();
     ok(errors.length === 0, `(g) 0 lỗi console${errors.length ? ": " + errors.join(" | ") : ""}`);
+    await ctx.close();
+  }
+
+  /* ============ (h) Màn 5: animation ăn mừng SIUUU (chạy -> trượt cỏ -> hoàn thành) + bỏ qua ============ */
+  console.log("(h) Màn 5 animation SIUUU");
+  async function winRoundL5(page) {
+    // sút 5 quả vào 2 góc xa thủ môn: ở D=1 khoảng cách tới thủ môn luôn > vùng bắt -> vào bàn
+    const sb = await page.locator("#level-stage").boundingBox();
+    const goal = await page.evaluate(() => {
+      const g = document.querySelector("#l5-goal").getBoundingClientRect();
+      const s = document.querySelector("#level-stage").getBoundingClientRect();
+      return { left: g.left - s.left, top: g.top - s.top, width: g.width, height: g.height };
+    });
+    for (let shot = 0; shot < 5; shot++) {
+      const cornerX = shot % 2 === 0 ? goal.left + 44 : goal.left + goal.width - 44;
+      await page.mouse.move(sb.x + cornerX, sb.y + goal.top + 52);
+      await sleep(250 + shot * 160);
+      await page.mouse.down(); await sleep(480); await page.mouse.up();
+      await sleep(1500);
+    }
+    return sb;
+  }
+  {
+    const { ctx, page, errors } = await newPage(browser, { 5: 1 });
+    await openLevel(page, 5);
+    await winRoundL5(page);
+    // Pha CHẠY: nhân vật xuất hiện và x tăng dần
+    let actorBox1 = null;
+    try {
+      await page.waitForSelector(".celeb-actor", { timeout: 5000 });
+      actorBox1 = await page.locator(".celeb-actor").boundingBox();
+      await page.screenshot({ path: "qa-shots/siuuu-run.png" });
+    } catch (e) { /* actorBox1 null -> assert dưới sẽ trượt */ }
+    ok(!!actorBox1, "SIUUU: nhân vật chạy ăn mừng xuất hiện sau khi thắng");
+    if (actorBox1) {
+      await sleep(350);
+      const actorBox2 = await page.locator(".celeb-actor").boundingBox().catch(() => null);
+      ok(!!actorBox2 && actorBox2.x > actorBox1.x + 10,
+        `SIUUU: nhân vật chạy sang phải (x ${Math.round(actorBox1.x)} -> ${actorBox2 ? Math.round(actorBox2.x) : "?"})`);
+    }
+    // Pha TRƯỢT: đổi pose trượt + có vụn cỏ bay
+    let slideSeen = false;
+    try { await page.waitForSelector(".celeb-actor.slide", { timeout: 5000 }); slideSeen = true; } catch (e) { }
+    ok(slideSeen, "SIUUU: nhân vật chuyển sang pose trượt cỏ");
+    let grassMax = 0;
+    if (slideSeen) {
+      await page.screenshot({ path: "qa-shots/siuuu-slide.png" });
+      const tG = Date.now();
+      while (Date.now() - tG < 1400) {
+        const n = await page.locator(".grass-bit").count();
+        if (n > grassMax) grassMax = n;
+        if (n >= 10) break;
+        await sleep(70);
+      }
+    }
+    ok(grassMax >= 10, `SIUUU: vụn cỏ bay khi trượt (thấy tối đa ${grassMax} vụn)`);
+    // Overlay + màn hoàn thành xuất hiện sau animation
+    await page.waitForSelector("#screen-complete:not(.hidden)", { timeout: 20000 });
+    const msg = await page.locator("#complete-message").innerText();
+    const m = msg.match(/(\d+)\/5/);
+    ok(m && parseInt(m[1], 10) >= 2, `SIUUU: thắng và hiện màn hoàn thành (${msg})`);
+    ok(errors.length === 0, `(h1) 0 lỗi console${errors.length ? ": " + errors.join(" | ") : ""}`);
+    await ctx.close();
+  }
+  {
+    // Bỏ qua: bấm vào sân giữa animation -> vào thẳng màn hoàn thành, complete chỉ áp 1 lần
+    const { ctx, page, errors } = await newPage(browser, { 5: 1 });
+    await openLevel(page, 5);
+    const sb = await winRoundL5(page);
+    let actorSeen = false;
+    try { await page.waitForSelector(".celeb-actor", { timeout: 5000 }); actorSeen = true; } catch (e) { }
+    ok(actorSeen, "SIUUU (skip): animation bắt đầu chạy");
+    const tSkip = Date.now();
+    await page.mouse.move(sb.x + sb.width * 0.5, sb.y + sb.height * 0.55);
+    await page.mouse.down(); await page.mouse.up();
+    await page.waitForSelector("#screen-complete:not(.hidden)", { timeout: 5000 });
+    ok(Date.now() - tSkip < 4500, `SIUUU (skip): bấm giữa animation -> màn hoàn thành hiện ngay (${Date.now() - tSkip}ms)`);
+    const msg = await page.locator("#complete-message").innerText();
+    const m = msg.match(/(\d+)\/5/);
+    const goals = m ? parseInt(m[1], 10) : -1;
+    const need = 2;
+    const expectedD = Math.max(1, 1 + (goals >= need ? 1 : goals <= need - 2 ? -1 : 0));
+    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("krakenProgress")).difficulty[5]);
+    ok(stored === expectedD, `SIUUU (skip): cấp lưu = ${stored}, kỳ vọng ${expectedD} (complete chỉ áp đúng 1 lần, goals=${goals})`);
+    ok(errors.length === 0, `(h2) 0 lỗi console${errors.length ? ": " + errors.join(" | ") : ""}`);
     await ctx.close();
   }
 
