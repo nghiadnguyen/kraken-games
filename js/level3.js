@@ -71,7 +71,9 @@ window.KrakenLevel3 = function (stage, api) {
     el.style.height = itemH + "px";
     const col = i % cols, row = Math.floor(i / cols);
     const stepX = cols > 1 ? (yardW - itemW - 28) / (cols - 1) : 0;
-    const stepY = rows > 1 ? (yardH - itemH - 20) / (rows - 1) : 0;
+    // khoảng cách hàng thích ứng: tối đa 120px, sân thấp thì thu hẹp lại theo chiều cao
+    // thật của sân chứa để hàng cuối không bao giờ tràn xuống khu vực zone
+    const stepY = rows > 1 ? Math.min(120, Math.max(0, (yardH - 96) / (rows - 1))) : 0;
     el.style.left = (14 + col * stepX) + "px";
     el.style.top = (10 + row * stepY) + "px";
     el.dataset.homeX = el.style.left; el.dataset.homeY = el.style.top;

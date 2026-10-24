@@ -28,7 +28,11 @@ window.KrakenLevel5 = function (stage, api) {
   let ballHome = null;
 
   function updateHud() { api.hud.textContent = `⚽ Quả ${Math.min(shots + 1, TOTAL_SHOTS)}/${TOTAL_SHOTS} • Vào: ${goals} • Cần vào: ${NEED_GOALS}`; }
-  function goalRect() { return { left: stage.clientWidth * 0.19, width: stage.clientWidth * 0.62, top: 36, height: 300 }; }
+  // khung thành co giãn theo sân (CSS %): đo trực tiếp từ vị trí thật của .goal so với sân
+  function goalRect() {
+    const gr = goalEl.getBoundingClientRect(), sr = stage.getBoundingClientRect();
+    return { left: gr.left - sr.left, top: gr.top - sr.top, width: gr.width, height: gr.height };
+  }
   function resetBall() {
     ball.style.transition = "none";
     ball.style.left = "50%"; ball.style.top = ""; ball.style.bottom = "64px";
