@@ -47,9 +47,11 @@ assert.strictEqual(params(3, 2).hintLevel, 2); assert.strictEqual(params(3, 5).h
 
 /* Màn 4 */
 mono(4, "roadWidth", "down", Ds); mono(4, "ctrlCount", "up", Ds); mono(4, "coins", "up", Ds);
-mono(4, "swingHalf", "up", Ds); mono(4, "obstacles", "up", Ds);
-for (const D of Ds) { const p = params(4, D); ok(p.roadWidth >= 64 && p.ctrlCount <= 15 && p.coins <= 16 && p.obstacles <= 6 && p.swingHalf <= 0.40, `L4 trần/sàn D=${D}`); }
+mono(4, "swingHalf", "up", Ds); mono(4, "obstacles", "up", Ds); mono(4, "dropMs", "down", Ds);
+for (const D of Ds) { const p = params(4, D); ok(p.roadWidth >= 64 && p.ctrlCount <= 15 && p.coins <= 16 && p.obstacles <= 6 && p.swingHalf <= 0.40 && p.dropMs >= 600, `L4 trần/sàn D=${D}`); }
 assert.strictEqual(params(4, 1).roadWidth, 128); assert.strictEqual(params(4, 1).coins, 8);
+assert.strictEqual(params(4, 1).dropMs, 1300);
+assert.strictEqual(params(4, 8).dropMs, Math.round(1300 * Math.pow(0.96, 7)));
 assert.ok(Math.abs(params(4, 8).roadWidth - 128 * Math.pow(0.95, 7)) < 1e-9, "L4 D=8 roadWidth ≈ 89");
 assert.strictEqual(params(4, 8).ctrlCount, 15); assert.strictEqual(params(4, 8).coins, 15);
 

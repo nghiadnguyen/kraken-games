@@ -1,17 +1,29 @@
 /* Màn 4 — Giữ chuột & lái theo đường: kéo xe đua theo đường quanh co, ăn xu vàng, về đích
    Độ khó theo công thức (api.params): bề rộng đường, số điểm cua, biên dao động,
-   số xu + độ lệch xu khỏi tim đường, số chướng ngại làm chậm xe. */
+   số xu + độ lệch xu khỏi tim đường, số chướng ngại làm chậm xe, nhịp rớt xu (dropMs).
+   Cơ chế rớt xu: khi GIỮ chuột lái RA NGOÀI đường, sau 500ms ân hạn thì cứ mỗi dropMs
+   xe rớt 1 xu đã nhặt (xu mới nhặt nhất rớt trước), xu quay về đúng vị trí cũ trên
+   đường để bé lái vào đường nhặt lại. Vào đường / thả chuột là bộ đếm đặt lại từ đầu. */
 window.KrakenLevel4 = function (stage, api) {
   const P = api.params;
   const COIN_TOTAL = P.coins;
+  const DROP_MS = P.dropMs;
+  const GRACE_MS = 500;
   let done = false, raf = null, holding = false;
   let coinsGot = 0;
   let target = null;
+  // rớt xu: ngăn xếp xu theo thứ tự đã nhặt + bộ tích lũy thời gian ngoài đường
+  let collectedStack = [];   // xu nhặt gần nhất nằm ở cuối, rớt sẽ lấy từ cuối ra
+  let offMs = 0;             // tổng thời gian liên tục ở ngoài đường (đang giữ chuột) trong 1 đợt
+  let graceLeft = GRACE_MS;  // phần ân hạn còn lại của đợt ngoài đường hiện tại
+  let dropCharge = 0;        // thời gian ngoài đường đã tích lũy sau ân hạn, chờ đủ DROP_MS thì rớt 1 xu
+  let offTrackNow = false;   // xe hiện có đang ngoài đường không (cho debug + hint)
+  let hintHoldUntil = 0;     // giữ nguyên dòng hint "rớt xu" một lúc, không bị hint lái xe ghi đè ngay
 
   stage.classList.add("race-stage");
   stage.innerHTML = `
     <canvas class="race-canvas" id="l4-canvas"></canvas>
-    <div class="race-hint" id="l4-hint">🚦 Nhấn GIỮ chuột để xe chạy theo chuột của con!</div>
+    <div class="race-hint" id="l4-hint">🚦 Nhấn GIỮ chuột để xe chạy theo chuột của con! Đi ra ngoài đường là rớt xu đó nhé!</div>
     <div class="race-car" id="l4-car">${window.KrakenIcons.raceCar()}</div>`;
   const canvas = stage.querySelector("#l4-canvas");
   const ctx = canvas.getContext("2d");
@@ -45,9 +57,15 @@ window.KrakenLevel4 = function (stage, api) {
     const t2 = t * t, t3 = t2 * t;
     return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
   }
+  function resetDropState() {
+    collectedStack = [];
+    offMs = 0; graceLeft = GRACE_MS; dropCharge = 0; offTrackNow = false;
+  }
+
   function buildTrack() {
     const w = stage.clientWidth, h = stage.clientHeight;
     canvas.width = w; canvas.height = h;
+    resetDropState();
     const pts = genCtrl().map(p => ({ x: p[0] * w, y: p[1] * h }));
     window.__l4ctrl = pts;
     samples = [];
@@ -100,7 +118,14 @@ window.KrakenLevel4 = function (stage, api) {
 
     window.__l4debug = {
       D: api.difficulty, roadWidth: P.roadWidth, ctrlCount: pts.length,
-      coins: COIN_TOTAL, swingHalf: P.swingHalf, obstacles: obstacles.length
+      coins: COIN_TOTAL, swingHalf: P.swingHalf, obstacles: obstacles.length,
+      dropMs: DROP_MS,
+      get coinsGot() { return coinsGot; },
+      get coinFlags() { return coins.map(c => c.got); },
+      get coinStates() { return coins.map(c => ({ x: Math.round(c.x), y: Math.round(c.y), got: c.got })); },
+      get carPos() { return { x: Math.round(car.x), y: Math.round(car.y) }; },
+      get offTrackMs() { return Math.round(offMs); },
+      get isOffTrack() { return offTrackNow; }
     };
 
     // vẽ đường tĩnh ra canvas phụ
@@ -154,8 +179,44 @@ window.KrakenLevel4 = function (stage, api) {
     carEl.style.transform = `translate(-50%,-50%) rotate(${car.angle}deg)`;
   }
 
-  function loop() {
+  // rớt 1 xu: lấy xu nhặt GẦN NHẤT ra khỏi ngăn xếp, xu hiện lại ở đúng vị trí cũ trên đường
+  function dropCoin(now) {
+    const c = collectedStack.pop();
+    if (!c) return;
+    c.got = false;
+    coinsGot = Math.max(0, coinsGot - 1);
+    updateHud();
+    window.KrakenAudio.drop();
+    window.Kraken.floatText(stage, car.x, car.y - 14, "🪙 Rớt 1 xu!");
+    hint.textContent = "Xu bị rớt rồi! Quay lại đường nhặt lại xu nhé! 🪙";
+    hintHoldUntil = now + 1600;
+  }
+
+  let lastTs = null;
+  function loop(ts) {
     if (done) return;
+    const now = typeof ts === "number" ? ts : performance.now();
+    const dt = lastTs == null ? 0 : Math.min(100, now - lastTs); // chặn dt khi tab bị khựng
+    lastTs = now;
+    const onTrack = distToTrack(car.x, car.y) < P.roadWidth / 2 + 10;
+    offTrackNow = !onTrack;
+
+    // tích lũy thời gian ngoài đường (chỉ khi đang GIỮ chuột lái): 500ms đầu mỗi đợt được ân hạn,
+    // sau đó cứ đủ DROP_MS lại rớt 1 xu. Vào đường hoặc thả chuột là đặt lại toàn bộ.
+    if (holding && offTrackNow) {
+      offMs += dt;
+      let rest = dt;
+      if (graceLeft > 0) { const g = Math.min(graceLeft, rest); graceLeft -= g; rest -= g; }
+      dropCharge += rest;
+      while (dropCharge >= DROP_MS) {
+        if (!collectedStack.length) { dropCharge = 0; break; } // hết xu thì thôi, không tích nợ
+        dropCharge -= DROP_MS;
+        dropCoin(now);
+      }
+    } else {
+      offMs = 0; graceLeft = GRACE_MS; dropCharge = 0;
+    }
+
     if (holding && target) {
       const dx = target.x - car.x, dy = target.y - car.y;
       const d = Math.hypot(dx, dy);
@@ -164,18 +225,19 @@ window.KrakenLevel4 = function (stage, api) {
         const desired = Math.atan2(dy, dx) * 180 / Math.PI;
         let diff = ((desired - car.angle + 540) % 360) - 180;
         car.angle += diff * 0.25;
-        const onTrack = distToTrack(car.x, car.y) < P.roadWidth / 2 + 10;
         const nearObstacle = obstacles.some(o => Math.hypot(o.x - car.x, o.y - car.y) < 42);
-        let speed = onTrack ? 6.2 : 2.1; // ra khỏi đường chỉ chạy chậm lại, không phạt
+        let speed = onTrack ? 6.2 : 2.1; // ra khỏi đường chạy chậm lại (và còn rớt xu nữa)
         if (nearObstacle) speed *= 0.45;  // gần chướng ngại: chậm lại thôi
         const step = Math.min(speed, d);
         car.x += (dx / d) * step; car.y += (dy / d) * step;
-        if (!onTrack) hint.textContent = "🐢 Ra khỏi đường nên xe chạy chậm nè, quay lại đường xám nhé!";
-        else hint.textContent = "🏎️ Đang lái... ăn xu vàng và về cờ đích 🏁 nào!";
+        if (now >= hintHoldUntil) {
+          if (!onTrack) hint.textContent = "🐢 Ra khỏi đường là rớt xu đó! Quay lại đường xám nhé!";
+          else hint.textContent = "🏎️ Đang lái... ăn xu vàng và về cờ đích 🏁 nào!";
+        }
       }
       coins.forEach(c => {
         if (!c.got && Math.hypot(c.x - car.x, c.y - car.y) < 48) {
-          c.got = true; coinsGot++; updateHud(); window.KrakenAudio.coin();
+          c.got = true; collectedStack.push(c); coinsGot++; updateHud(); window.KrakenAudio.coin();
           window.Kraken.floatText(stage, c.x, c.y - 10, "🪙 +1");
         }
       });
@@ -195,7 +257,11 @@ window.KrakenLevel4 = function (stage, api) {
   function pos(e) { const r = stage.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
   function onDown(e) { window.KrakenAudio.unlock(); holding = true; target = pos(e); try { stage.setPointerCapture(e.pointerId); } catch (err) {} }
   function onMove(e) { if (holding) target = pos(e); }
-  function onUp() { holding = false; if (!done) hint.textContent = "🚦 Nhấn GIỮ chuột để xe chạy tiếp nào!"; }
+  function onUp() {
+    holding = false;
+    offMs = 0; graceLeft = GRACE_MS; dropCharge = 0; // thả chuột là bộ đếm rớt xu đặt lại
+    if (!done) hint.textContent = "🚦 Nhấn GIỮ chuột để xe chạy tiếp nào!";
+  }
   stage.addEventListener("pointerdown", onDown);
   stage.addEventListener("pointermove", onMove);
   stage.addEventListener("pointerup", onUp);

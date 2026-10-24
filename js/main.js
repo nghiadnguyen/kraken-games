@@ -10,7 +10,7 @@ window.Kraken = (function () {
     1: { title: "Màn 1: Lặn Biển Tìm Kho Báu", instruction: "🖱️ Chỉ cần DI CHUỘT cho bạn Kraken chạm vào bong bóng và kho báu nhé!" },
     2: { title: "Màn 2: Hứng Hàng Cứu Trợ", instruction: "🖱️ BẤM CHUỘT vào thùng hàng đang rơi để Kraken hứng lấy mang về tàu!" },
     3: { title: "Màn 3: Xếp Xe, Máy Bay, Tàu Chiến", instruction: "🖱️ GIỮ CHUỘT kéo từng chiếc xe, máy bay, tàu về đúng nhà của nó rồi THẢ ra!" },
-    4: { title: "Màn 4: Đua Xe Ăn Xu Vàng", instruction: "🖱️ GIỮ CHUỘT và lái xe theo đường đua, ăn xu vàng, về tới cờ đích nhé!" },
+    4: { title: "Màn 4: Đua Xe Ăn Xu Vàng", instruction: "🖱️ GIỮ CHUỘT và lái xe theo đường đua, ăn xu vàng, về tới cờ đích nhé! Đi ra ngoài đường là rớt xu đó, quay lại đường nhặt lại nhé!" },
     5: { title: "Màn 5: Kraken Sút Phạt — Tiền Đạo Số 7", instruction: "🖱️ Di chuột để NGẮM, GIỮ chuột nạp lực ở vùng XANH, THẢ ra để sút!" }
   };
 

@@ -185,6 +185,128 @@ async function goHome(page) { await page.click("#btn-home"); await sleep(400); }
     await ctx.close();
   }
 
+  /* ============ (f) Màn 4: cơ chế rớt xu khi lái ra ngoài đường (D=1) ============ */
+  console.log("(f) Màn 4 cơ chế rớt xu");
+  {
+    const { ctx, page, errors } = await newPage(browser, { 4: 1 });
+    await openLevel(page, 4);
+    const dbg0 = await page.evaluate(() => window.__l4debug);
+    ok(dbg0 && dbg0.dropMs === 1300, `L4 debug dropMs = 1300 ở D=1 (=${dbg0 && dbg0.dropMs})`);
+    const sb = await page.locator("#level-stage").boundingBox();
+    const dbg = () => page.evaluate(() => {
+      const d = window.__l4debug;
+      return { coinsGot: d.coinsGot, flags: d.coinFlags, states: d.coinStates, car: d.carPos, offMs: d.offTrackMs, isOff: d.isOffTrack };
+    });
+    async function driveTo(x, y, timeoutMs) {
+      await page.mouse.move(sb.x + x, sb.y + y);
+      const t0 = Date.now();
+      let d = await dbg();
+      while (Date.now() - t0 < (timeoutMs || 8000)) {
+        d = await dbg();
+        if (Math.hypot(d.car.x - x, d.car.y - y) < 26) break;
+        await sleep(120);
+      }
+      return d;
+    }
+    // nhặt ít nhất 2 xu (xu D=1 nằm trên tim đường, lái thẳng tới từng xu)
+    let st = await dbg();
+    await page.mouse.move(sb.x + st.car.x, sb.y + st.car.y);
+    await page.mouse.down();
+    for (let i = 0; i < st.states.length && st.coinsGot < 2; i++) {
+      st = await driveTo(st.states[i].x, st.states[i].y, 9000);
+    }
+    ok(st.coinsGot >= 2, `L4 nhặt được ít nhất 2 xu trên đường (coinsGot=${st.coinsGot})`);
+    const peak = st.coinsGot;
+    const flagsBefore = st.flags.slice();
+    // giữ nguyên trên đường thêm 1.5s: KHÔNG được rớt xu nào
+    await sleep(1500);
+    st = await dbg();
+    ok(st.coinsGot === peak && !st.isOff && st.offMs === 0,
+      `L4 giữ trên đường: không rớt xu (coinsGot=${st.coinsGot}, isOffTrack=${st.isOff}, offMs=${st.offMs})`);
+    // tìm điểm xa đường nhất trong sân rồi lái ra đó và GIỮ: phải rớt ít nhất 1 xu
+    const offPoint = await page.evaluate(() => {
+      const S = window.__l4samples;
+      const el = document.querySelector("#level-stage");
+      const W = el.clientWidth, H = el.clientHeight;
+      let best = null;
+      for (let x = 20; x < W - 20; x += 16) for (let y = 20; y < H - 20; y += 16) {
+        let m = Infinity;
+        for (let i = 0; i < S.length; i += 3) { const dd = Math.hypot(S[i].x - x, S[i].y - y); if (dd < m) m = dd; }
+        if (!best || m > best.dist) best = { x, y, dist: m };
+      }
+      return best;
+    });
+    ok(offPoint.dist > 120, `L4 tìm được điểm ngoài đường (cách đường ${Math.round(offPoint.dist)}px)`);
+    await page.mouse.move(sb.x + offPoint.x, sb.y + offPoint.y);
+    let dropped = null;
+    const tOff = Date.now();
+    while (Date.now() - tOff < 9000) {
+      st = await dbg();
+      if (st.coinsGot < peak) { dropped = st; break; }
+      await sleep(110);
+    }
+    ok(!!dropped, `L4 giữ ngoài đường -> rớt xu (coinsGot ${peak} -> ${dropped ? dropped.coinsGot : "không rớt"})`);
+    if (dropped) {
+      await page.screenshot({ path: "qa-shots/l4-coin-drop.png" });
+      ok(dropped.flags.some((f, i) => flagsBefore[i] && !f), "L4 xu đã nhặt hiện lại trên đường (got=false)");
+      const hintTxt = await page.locator("#l4-hint").innerText();
+      const floatN = await page.locator(".float-text").count();
+      ok(hintTxt.includes("Xu bị rớt rồi") || floatN > 0, `L4 có thông báo rớt xu (hint="${hintTxt}", floatText=${floatN})`);
+    }
+    await sleep(1800); // giữ thêm ngoài đường: có thể rớt tiếp nhưng không bao giờ âm
+    st = await dbg();
+    ok(st.coinsGot >= 0, `L4 coinsGot không bao giờ âm (=${st.coinsGot})`);
+    const droppedIdx = st.flags.findIndex((f, i) => flagsBefore[i] && !f);
+    ok(droppedIdx >= 0, `L4 xác định được xu vừa rớt (index=${droppedIdx})`);
+    // lái quay lại đúng vị trí xu vừa rớt để nhặt lại
+    const targetCoin = st.states[droppedIdx];
+    await page.mouse.up(); await sleep(150);
+    await page.mouse.move(sb.x + targetCoin.x, sb.y + targetCoin.y);
+    await page.mouse.down();
+    let back = false;
+    const tRe = Date.now();
+    while (Date.now() - tRe < 9000) {
+      st = await dbg();
+      if (st.flags[droppedIdx]) { back = true; break; }
+      await sleep(120);
+    }
+    ok(back, `L4 nhặt lại được đúng xu vừa rớt (index=${droppedIdx}, coinsGot=${st.coinsGot})`);
+    await page.mouse.up();
+    ok(errors.length === 0, `(f) 0 lỗi console${errors.length ? ": " + errors.join(" | ") : ""}`);
+    await ctx.close();
+  }
+
+  /* ============ (g) Màn 4: lái hết đường về đích ============ */
+  console.log("(g) Màn 4 về đích");
+  {
+    const { ctx, page, errors } = await newPage(browser, { 4: 1 });
+    await openLevel(page, 4);
+    const sb = await page.locator("#level-stage").boundingBox();
+    const samples = await page.evaluate(() => window.__l4samples);
+    await page.mouse.move(sb.x + samples[0].x, sb.y + samples[0].y);
+    await page.mouse.down();
+    let idx = 0, finished = false;
+    const t0 = Date.now();
+    while (Date.now() - t0 < 45000) {
+      const vis = await page.locator("#screen-complete:not(.hidden)").isVisible().catch(() => false);
+      if (vis) { finished = true; break; }
+      idx = Math.min(samples.length - 1, idx + 16);
+      const p = samples[idx];
+      await page.mouse.move(sb.x + p.x, sb.y + p.y);
+      const tw = Date.now();
+      while (Date.now() - tw < 900) {
+        const car = await page.evaluate(() => window.__l4debug.carPos);
+        if (Math.hypot(car.x - p.x, car.y - p.y) < 34) break;
+        await sleep(90);
+      }
+      if (idx >= samples.length - 1) await sleep(600);
+    }
+    ok(finished, "L4 lái theo đường tới cờ đích -> hiện màn hoàn thành");
+    await page.mouse.up();
+    ok(errors.length === 0, `(g) 0 lỗi console${errors.length ? ": " + errors.join(" | ") : ""}`);
+    await ctx.close();
+  }
+
   /* ============ Ảnh chụp độ khó ============ */
   console.log("(e) Screenshots");
   {

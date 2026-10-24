@@ -52,7 +52,8 @@
         swingHalf: Math.min(0.40, 0.30 + 0.015 * (D - 1)),
         coins: Math.min(16, 8 + (D - 1)),
         coinOffFrac: D < 3 ? 0 : Math.min(1, 0.25 * (D - 2)),
-        obstacles: D < 5 ? 0 : Math.min(6, D - 4)
+        obstacles: D < 5 ? 0 : Math.min(6, D - 4),
+        dropMs: Math.max(600, Math.round(1300 * Math.pow(0.96, D - 1)))
       };
 
       /* Màn 5 — Sút phạt */
