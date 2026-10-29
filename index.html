@@ -42,48 +42,13 @@
     </div>
 
     <h1 class="game-title">Hành Trình Của Kraken</h1>
-    <p class="game-subtitle">Chào Kraken! Cùng luyện chuột qua 5 màn vui nhộn nhé! 🐙</p>
+    <p class="game-subtitle">Chào Kraken! Cùng khám phá bản đồ đảo học tập vui nhộn nhé! 🐙</p>
     <p class="total-stars">Tổng số sao của con: <span id="total-stars">⭐ 0</span></p>
 
-    <nav class="level-menu" id="level-menu">
-      <button class="level-btn" data-level="1">
-        <span class="level-icon">🫧</span>
-        <span class="level-text"><span class="level-name">Màn 1: Lặn Biển Tìm Kho Báu</span>
-        <span class="level-skill">Luyện: Di chuột</span></span>
-        <span class="level-stars" data-stars-for="1"></span>
-        <span class="level-badge" data-diff-for="1">Cấp 1</span>
-      </button>
-      <button class="level-btn" data-level="2">
-        <span class="level-icon">🪂</span>
-        <span class="level-text"><span class="level-name">Màn 2: Hứng Hàng Cứu Trợ</span>
-        <span class="level-skill">Luyện: Bấm chuột (click)</span></span>
-        <span class="level-stars" data-stars-for="2"></span>
-        <span class="level-badge" data-diff-for="2">Cấp 1</span>
-      </button>
-      <button class="level-btn" data-level="3">
-        <span class="level-icon">🚗</span>
-        <span class="level-text"><span class="level-name">Màn 3: Xếp Xe, Máy Bay, Tàu Chiến</span>
-        <span class="level-skill">Luyện: Kéo và thả</span></span>
-        <span class="level-stars" data-stars-for="3"></span>
-        <span class="level-badge" data-diff-for="3">Cấp 1</span>
-      </button>
-      <button class="level-btn" data-level="4">
-        <span class="level-icon">🏎️</span>
-        <span class="level-text"><span class="level-name">Màn 4: Đua Xe Ăn Xu Vàng</span>
-        <span class="level-skill">Luyện: Giữ chuột và lái theo đường</span></span>
-        <span class="level-stars" data-stars-for="4"></span>
-        <span class="level-badge" data-diff-for="4">Cấp 1</span>
-      </button>
-      <button class="level-btn" data-level="5">
-        <span class="level-icon">⚽</span>
-        <span class="level-text"><span class="level-name">Màn 5: Kraken Sút Phạt — Tiền Đạo Số 7</span>
-        <span class="level-skill">Luyện: Ngắm, giữ chuột nạp lực, thả ra sút!</span></span>
-        <span class="level-stars" data-stars-for="5"></span>
-        <span class="level-badge" data-diff-for="5">Cấp 1</span>
-      </button>
-    </nav>
+    <!-- Bản đồ đảo: dựng tự động từ js/registry.js -->
+    <div id="islands"></div>
 
-    <p class="parent-note">👨‍👩‍👦 Cho ba mẹ: bấm thẳng vào màn bất kỳ để chơi, không cần qua màn trước. Mỗi màn chỉ 1–2 phút.</p>
+    <p class="parent-note">👨‍👩‍👦 Cho ba mẹ: bấm/chạm thẳng vào game bất kỳ để chơi, không cần qua màn trước. Đảo Toán chơi được cả trên máy tính và iPad (chạm để chọn đáp án).</p>
   </div>
 </main>
 
@@ -122,6 +87,8 @@
 
 <script src="js/audio.js"></script>
 <script src="js/difficulty.js"></script>
+<script src="js/mathbank.js"></script>
+<script src="js/registry.js"></script>
 <script src="js/main.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/level1.js"></script>
@@ -129,5 +96,8 @@
 <script src="js/level3.js"></script>
 <script src="js/level4.js"></script>
 <script src="js/level5.js"></script>
+<!-- Game mới theo chuẩn module: mỗi game 1 file ES module, tự đăng ký vào KrakenRegistry -->
+<script type="module" src="js/games/tinh-nhanh.js"></script>
+<script type="module" src="js/games/so-bi-an.js"></script>
 </body>
 </html>

@@ -10,8 +10,40 @@
     return isFinite(D) && D >= 1 ? D : 1;
   }
 
+  /* Thông số chung cho các game TOÁN (Đảo Toán): cộng/trừ trong phạm vi 100.
+     - maxNum: trần của số hạng và kết quả, lớn dần 10 -> 100 theo D.
+     - carryP: xác suất phép tính "có nhớ" (cộng) / "có mượn" (trừ), 0 ở D=1 rồi tăng dần.
+     - questions: số câu mỗi lượt; choices: số đáp án để chọn; distGap: độ "gần" của đáp án nhiễu (càng cao cấp càng gần đáp án đúng). */
+  function mathParams(D) {
+    return {
+      maxNum: Math.min(100, 10 * D),
+      carryP: D < 2 ? 0 : Math.min(0.7, 0.15 * (D - 1)),
+      questions: Math.min(10, 5 + Math.floor((D - 1) / 2)),
+      choices: D < 4 ? 3 : 4,
+      distGap: Math.max(1, 11 - D)
+    };
+  }
+
   function params(level, D) {
     D = normD(D);
+
+    /* Đảo Toán — Tính Nhanh: hiện phép cộng/trừ, chọn đáp án đúng.
+       subFrac: tỉ lệ câu trừ trong một lượt. */
+    if (level === "tinh-nhanh") {
+      const p = mathParams(D);
+      p.subFrac = Math.min(0.5, 0.3 + 0.05 * (D - 1));
+      return p;
+    }
+
+    /* Đảo Toán — Tìm Số Bí Ẩn: phương trình thiếu một số (a + ? = c, ? − b = c...).
+       blankTypes: số kiểu vị trí thiếu được phép dùng — cấp thấp chỉ thiếu số hạng thứ hai,
+       từ D=3 mở thêm thiếu số hạng đầu / số bị trừ. */
+    if (level === "so-bi-an") {
+      const p = mathParams(D);
+      p.blankTypes = D < 3 ? 2 : 4;
+      return p;
+    }
+
     switch (Number(level)) {
 
       /* Màn 1 — Di chuột */

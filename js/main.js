@@ -1,4 +1,5 @@
-/* Hành Trình Của Kraken — điều hướng, tiến độ (localStorage), màn hoàn thành */
+/* Hành Trình Của Kraken — điều hướng theo registry game, tiến độ v2 (localStorage), màn hoàn thành.
+   Danh sách đảo/game nằm ở js/registry.js (KrakenRegistry) — file này chỉ lo chạy game và lưu tiến độ. */
 window.Kraken = (function () {
   const STORAGE_KEY = "krakenProgress";
   const PRAISES = ["Giỏi quá Kraken! 🎉", "Tuyệt vời! 🌟", "Con làm được rồi! 💪", "Xuất sắc! 🏆", "Hoan hô Kraken! 👏"];
@@ -6,16 +7,10 @@ window.Kraken = (function () {
   let currentLevel = 0;
   let activeCleanup = null;
 
-  const LEVELS = {
-    1: { title: "Màn 1: Lặn Biển Tìm Kho Báu", instruction: "🖱️ Chỉ cần DI CHUỘT cho bạn Kraken chạm vào bong bóng và kho báu nhé!" },
-    2: { title: "Màn 2: Hứng Hàng Cứu Trợ", instruction: "🖱️ BẤM CHUỘT vào thùng hàng đang rơi để Kraken hứng lấy mang về tàu!" },
-    3: { title: "Màn 3: Xếp Xe, Máy Bay, Tàu Chiến", instruction: "🖱️ GIỮ CHUỘT kéo từng chiếc xe, máy bay, tàu về đúng nhà của nó rồi THẢ ra!" },
-    4: { title: "Màn 4: Đua Xe Ăn Xu Vàng", instruction: "🖱️ GIỮ CHUỘT và lái xe theo đường đua, ăn xu vàng, về tới cờ đích nhé! Đi ra ngoài đường là rớt xu đó, quay lại đường nhặt lại nhé!" },
-    5: { title: "Màn 5: Kraken Sút Phạt — Tiền Đạo Số 7", instruction: "🖱️ Di chuột để NGẮM, GIỮ chuột nạp lực ở vùng XANH, THẢ ra để sút!" }
-  };
-
+  /* Tiến độ v2: { version: 2, stars: {gameId: sao}, completed: {gameId: true}, difficulty: {gameId: cấp D} }
+     Dữ liệu v1 (chưa có version, khóa theo màn 1..5) được TỰ ĐỘNG nâng lên v2, giữ nguyên sao/cấp đã lưu. */
   function loadProgress() {
-    let p = { stars: {}, completed: {}, difficulty: {} };
+    let p = { version: 2, stars: {}, completed: {}, difficulty: {} };
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
@@ -25,13 +20,16 @@ window.Kraken = (function () {
           if (parsed.stars) p.stars = parsed.stars;
           if (parsed.completed) p.completed = parsed.completed;
           if (parsed.difficulty) p.difficulty = parsed.difficulty;
+          if (parsed.version !== 2) {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); } catch (e) {} // ghi lại dạng v2
+          }
         }
       }
     } catch (e) { /* bỏ qua nếu localStorage bị chặn */ }
     return p;
   }
-  function getDifficulty(n) {
-    const d = Math.floor(Number(progress.difficulty[n]));
+  function getDifficulty(id) {
+    const d = Math.floor(Number(progress.difficulty[id]));
     return isFinite(d) && d >= 1 ? d : 1;
   }
   function saveProgress() {
@@ -41,6 +39,51 @@ window.Kraken = (function () {
   function $(id) { return document.getElementById(id); }
   function show(id) {
     ["screen-home", "screen-level", "screen-complete"].forEach(s => $(s).classList.toggle("hidden", s !== id));
+  }
+
+  /* ---------- Trang chủ: bản đồ đảo dựng từ registry ---------- */
+  function gameButton(g) {
+    const btn = document.createElement("button");
+    btn.className = "level-btn";
+    btn.setAttribute("data-game", g.id);
+    if (typeof g.id === "number") btn.setAttribute("data-level", g.id); // tương thích ngược cho 5 màn chuột
+    btn.innerHTML =
+      `<span class="level-icon">${g.icon}</span>` +
+      `<span class="level-text"><span class="level-name">${g.name}</span>` +
+      `<span class="level-skill">${g.skill}</span></span>` +
+      `<span class="level-stars" data-stars-for="${g.id}"></span>` +
+      `<span class="level-badge" data-diff-for="${g.id}">Cấp 1</span>`;
+    btn.addEventListener("click", () => {
+      window.KrakenAudio.unlock();
+      startLevel(g.id);
+    });
+    return btn;
+  }
+
+  function renderHome() {
+    const wrap = $("islands");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    for (const isl of window.KrakenRegistry.islands) {
+      const sec = document.createElement("section");
+      sec.className = "island" + (isl.locked ? " island-locked" : "");
+      sec.id = "island-" + isl.id;
+      let html = `<h2 class="island-title">${isl.emoji} ${isl.title}${isl.locked ? " 🔒" : ""}</h2>`;
+      if (isl.note) html += `<p class="island-note">${isl.note}</p>`;
+      sec.innerHTML = html;
+      if (isl.locked) {
+        const soon = document.createElement("p");
+        soon.className = "island-soon";
+        soon.textContent = "Sắp ra mắt — Kraken hãy chờ nhé! 🐙";
+        sec.appendChild(soon);
+      } else {
+        const nav = document.createElement("nav");
+        nav.className = "level-menu";
+        for (const g of window.KrakenRegistry.gamesOfIsland(isl.id)) nav.appendChild(gameButton(g));
+        sec.appendChild(nav);
+      }
+      wrap.appendChild(sec);
+    }
   }
 
   function refreshHome() {
@@ -56,24 +99,25 @@ window.Kraken = (function () {
     });
   }
 
-  function startLevel(n) {
-    currentLevel = n;
+  function startLevel(id) {
+    const game = window.KrakenRegistry.gameById(id);
+    if (!game) return;
+    currentLevel = id;
     if (activeCleanup) { try { activeCleanup(); } catch (e) {} activeCleanup = null; }
     $("level-stage").innerHTML = "";
     $("level-hud").textContent = "";
-    $("level-title").textContent = LEVELS[n].title;
-    $("level-instruction").textContent = LEVELS[n].instruction;
-    const D = getDifficulty(n);
+    $("level-title").textContent = game.title;
+    $("level-instruction").textContent = game.instruction;
+    const D = getDifficulty(id);
     $("diff-label").textContent = "Cấp " + D;
     $("btn-diff-minus").disabled = D <= 1;
     show("screen-level");
-    const fn = window["KrakenLevel" + n];
-    if (typeof fn === "function") {
-      activeCleanup = fn($("level-stage"), {
+    if (typeof game.start === "function") {
+      activeCleanup = game.start($("level-stage"), {
         hud: $("level-hud"),
         difficulty: D,
-        params: window.KrakenDifficulty.params(n, D),
-        complete: (stars, extra) => completeLevel(n, stars, extra)
+        params: window.KrakenDifficulty.params(id, D),
+        complete: (stars, extra) => completeLevel(id, stars, extra)
       }) || null;
     }
   }
@@ -88,14 +132,14 @@ window.Kraken = (function () {
     startLevel(currentLevel); // khởi động lại màn với thông số mới
   }
 
-  function completeLevel(n, stars, extra) {
+  function completeLevel(id, stars, extra) {
     if (activeCleanup) { try { activeCleanup(); } catch (e) {} activeCleanup = null; }
     stars = Math.max(1, Math.min(3, stars || 1));
-    if (!progress.stars[n] || stars > progress.stars[n]) progress.stars[n] = stars;
-    progress.completed[n] = true;
+    if (!progress.stars[id] || stars > progress.stars[id]) progress.stars[id] = stars;
+    progress.completed[id] = true;
 
     /* ---- lên / xuống cấp theo kết quả (công thức đã chốt) ---- */
-    const playedD = getDifficulty(n);
+    const playedD = getDifficulty(id);
     let delta = 0;
     if (extra && typeof extra.goals === "number" && typeof extra.needGoals === "number") {
       // Màn 5 dùng luật riêng theo số bàn thắng so với số bàn cần
@@ -106,7 +150,7 @@ window.Kraken = (function () {
       else if (extra.perf < 0.45) delta = -1;
     }
     const newD = Math.max(1, playedD + delta);
-    if (newD !== playedD) progress.difficulty[n] = newD;
+    if (newD !== playedD) progress.difficulty[id] = newD;
     saveProgress();
 
     window.KrakenAudio.jingle();
@@ -120,7 +164,7 @@ window.Kraken = (function () {
     else diffHtml += `<br>Giữ nguyên Cấp ${playedD} nhé!`;
     $("complete-diff").innerHTML = diffHtml;
     $("complete-extra").innerHTML = (extra && extra.html) || "";
-    $("btn-next").style.display = n >= 5 ? "none" : "";
+    $("btn-next").style.display = window.KrakenRegistry.nextInIsland(id) === null ? "none" : "";
     show("screen-complete");
   }
 
@@ -141,18 +185,16 @@ window.Kraken = (function () {
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".level-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        window.KrakenAudio.unlock();
-        startLevel(parseInt(btn.getAttribute("data-level"), 10));
-      });
-    });
+    renderHome();
     $("btn-diff-minus").addEventListener("click", () => changeDifficulty(-1));
     $("btn-diff-plus").addEventListener("click", () => changeDifficulty(1));
     $("btn-home").addEventListener("click", goHome);
     $("btn-complete-home").addEventListener("click", goHome);
     $("btn-replay").addEventListener("click", () => startLevel(currentLevel));
-    $("btn-next").addEventListener("click", () => startLevel(Math.min(5, currentLevel + 1)));
+    $("btn-next").addEventListener("click", () => {
+      const nx = window.KrakenRegistry.nextInIsland(currentLevel);
+      if (nx !== null && nx !== undefined) startLevel(nx);
+    });
     $("btn-fullscreen").addEventListener("click", () => {
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
       else document.documentElement.requestFullscreen().catch(() => {});

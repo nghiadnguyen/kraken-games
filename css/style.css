@@ -190,6 +190,57 @@ body {
 .grass-bit { position: absolute; z-index: 11; pointer-events: none; border-radius: 2px; }
 .skid { position: absolute; height: 7px; z-index: 10; pointer-events: none; border-radius: 999px; background: rgba(233, 238, 190, .45); }
 
+/* ---------- bản đồ đảo (trang chủ) ---------- */
+.island { margin-top: 34px; }
+.island-title { font-size: 36px; margin: 8px 0 2px; color: #023047; text-shadow: 2px 2px 0 #fff; }
+.island-note { font-size: 20px; margin: 2px 0 4px; color: #444; }
+.island .level-menu { margin-top: 10px; }
+.island-locked { opacity: .8; }
+.island-soon {
+  display: inline-block; font-size: 20px; font-weight: bold; color: #555;
+  background: rgba(255,255,255,.65); border: 3px dashed #888; border-radius: 16px;
+  padding: 12px 26px; margin-top: 8px;
+}
+.level-btn { touch-action: manipulation; }
+
+/* ================= ĐẢO TOÁN: khung chung cho game toán ================= */
+.math-stage { background: linear-gradient(180deg, #fff3b0 0%, #fef9c3 55%, #d9ed92 100%); touch-action: manipulation; }
+.math-wrap {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: space-evenly; padding: 14px 18px;
+}
+.math-chip { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,.85); border: 3px solid #22223b; border-radius: 999px; padding: 6px 22px 6px 10px; }
+.math-chip-icon { width: 104px; height: 62px; display: block; }
+.math-chip-icon svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.math-chip-label { font-size: 22px; font-weight: bold; }
+.math-eq {
+  display: flex; align-items: center; gap: 16px; font-weight: bold; color: #023047;
+  font-size: clamp(38px, 7.2vw, 72px); background: rgba(255,255,255,.9);
+  border: 5px solid #22223b; border-radius: 24px; padding: 12px 34px; line-height: 1.15;
+}
+.math-eq .math-op { color: #3a86ff; }
+.math-eq .math-q { color: #ef476f; }
+.math-blank {
+  display: inline-block; min-width: 84px; text-align: center; color: #ef476f;
+  border: 4px dashed #ef476f; border-radius: 14px; background: #fff; padding: 0 8px;
+}
+.math-blank.found { border-style: solid; border-color: #2a9d8f; color: #2a9d8f; background: #d8f3dc; }
+.math-choices { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.math-choice {
+  min-width: 118px; min-height: 88px; padding: 10px 22px;
+  font-family: inherit; font-size: 44px; font-weight: bold; color: #22223b;
+  background: #fff; border: 4px solid #22223b; border-radius: 22px; cursor: pointer;
+  box-shadow: 0 5px 0 #22223b; transition: transform .08s, box-shadow .08s, background .15s;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.math-choice:hover { background: #fffbe6; transform: translateY(-2px); }
+.math-choice:active { transform: translateY(3px); box-shadow: 0 2px 0 #22223b; }
+.math-choice.correct { background: #b7e4a8; border-color: #2a9d8f; box-shadow: 0 5px 0 #2a9d8f; }
+.math-choice.wrong { background: #ffd6d6; opacity: .55; animation: shake .35s ease; }
+.math-choice:disabled { cursor: default; }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); } }
+.math-hint { min-height: 30px; font-size: 21px; font-weight: bold; color: #9d0208; text-align: center; padding: 0 12px; }
+
 @media (max-width: 700px) {
   .game-title { font-size: 38px; }
   .level-name { font-size: 20px; }

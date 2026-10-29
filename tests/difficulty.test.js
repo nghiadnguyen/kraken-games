@@ -68,8 +68,51 @@ for (const D of Ds) {
 { let prev = Infinity; for (const D of Ds) { const w = params(5, D).greenHigh - params(5, D).greenLow; ok(w <= prev + 1e-12, `L5 vùng xanh không nở: D=${D}`); prev = w; } }
 assert.strictEqual(params(5, 1).needGoals, 2); assert.strictEqual(params(5, 1).greenLow, 30); assert.strictEqual(params(5, 1).greenHigh, 85);
 
+/* ===== Đảo Toán: Tính Nhanh & Tìm Số Bí Ẩn ===== */
+function monoId(id, key, dir) {
+  let prev = null;
+  for (const D of Ds) {
+    const v = params(id, D)[key];
+    ok(Number.isFinite(v), `${id}.${key} hữu hạn ở D=${D} (=${v})`);
+    if (prev !== null) {
+      if (dir === "up") ok(v >= prev, `${id}.${key} không giảm: D=${D - 1}:${prev} -> D=${D}:${v}`);
+      else ok(v <= prev, `${id}.${key} không tăng: D=${D - 1}:${prev} -> D=${D}:${v}`);
+    }
+    prev = v;
+  }
+}
+for (const id of ["tinh-nhanh", "so-bi-an"]) {
+  monoId(id, "maxNum", "up"); monoId(id, "carryP", "up"); monoId(id, "questions", "up");
+  monoId(id, "choices", "up"); monoId(id, "distGap", "down");
+  for (const D of Ds) {
+    const p = params(id, D);
+    ok(p.maxNum >= 10 && p.maxNum <= 100, `${id} maxNum trong [10,100] ở D=${D} (=${p.maxNum})`);
+    ok(p.carryP >= 0 && p.carryP <= 1, `${id} carryP trong [0,1] ở D=${D} (=${p.carryP})`);
+    ok(p.questions >= 5 && p.questions <= 10, `${id} questions trong [5,10] ở D=${D}`);
+    ok(p.choices === 3 || p.choices === 4, `${id} choices là 3 hoặc 4 ở D=${D}`);
+    ok(p.distGap >= 1, `${id} distGap >= 1 ở D=${D}`);
+  }
+  assert.strictEqual(params(id, 1).maxNum, 10);
+  assert.strictEqual(params(id, 1).carryP, 0);
+  assert.strictEqual(params(id, 1).questions, 5);
+  assert.strictEqual(params(id, 1).choices, 3);
+  assert.strictEqual(params(id, 1).distGap, 10);
+  assert.strictEqual(params(id, 10).maxNum, 100);
+  assert.strictEqual(params(id, 30).maxNum, 100);
+  assert.ok(Math.abs(params(id, 10).carryP - 0.7) < 1e-9, `${id} carryP chạm trần 0.7 ở D=10`);
+}
+monoId("tinh-nhanh", "subFrac", "up");
+for (const D of Ds) { const p = params("tinh-nhanh", D); ok(p.subFrac > 0 && p.subFrac <= 0.5, `tinh-nhanh subFrac trong (0, 0.5] ở D=${D}`); }
+assert.strictEqual(params("tinh-nhanh", 1).subFrac, 0.3);
+monoId("so-bi-an", "blankTypes", "up");
+assert.strictEqual(params("so-bi-an", 1).blankTypes, 2);
+assert.strictEqual(params("so-bi-an", 2).blankTypes, 2);
+assert.strictEqual(params("so-bi-an", 3).blankTypes, 4);
+assert.strictEqual(params("so-bi-an", 30).blankTypes, 4);
+
 /* D không hợp lệ -> kẹp về 1 */
 assert.deepStrictEqual(params(2, 0), params(2, 1));
 assert.deepStrictEqual(params(4, -3), params(4, 1));
+assert.deepStrictEqual(params("tinh-nhanh", 0), params("tinh-nhanh", 1));
 
-console.log(`difficulty.test.js: ${checks} assertions đạt (D=1..30, 5 màn)`);
+console.log(`difficulty.test.js: ${checks} assertions đạt (D=1..30, 5 màn + 2 game toán)`);
