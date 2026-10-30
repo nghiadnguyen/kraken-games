@@ -110,9 +110,73 @@ assert.strictEqual(params("so-bi-an", 2).blankTypes, 2);
 assert.strictEqual(params("so-bi-an", 3).blankTypes, 4);
 assert.strictEqual(params("so-bi-an", 30).blankTypes, 4);
 
+/* ===== Đảo Toán: 4 game mới (Đua Xe, Penalty, Tháp Pháo, Kho Báu) ===== */
+for (const id of ["dua-xe-toan", "penalty-toan", "thap-phao", "kho-bau"]) {
+  monoId(id, "maxNum", "up"); monoId(id, "carryP", "up"); monoId(id, "questions", "up"); monoId(id, "subFrac", "up");
+  for (const D of Ds) {
+    const p = params(id, D);
+    ok(p.maxNum >= 10 && p.maxNum <= 100, `${id} maxNum trong [10,100] ở D=${D}`);
+    ok(p.carryP >= 0 && p.carryP <= 0.7, `${id} carryP trong [0,0.7] ở D=${D}`);
+    ok(p.questions >= 5 && p.questions <= 10, `${id} questions trong [5,10] ở D=${D}`);
+    ok(p.subFrac > 0 && p.subFrac <= 0.5, `${id} subFrac trong (0,0.5] ở D=${D}`);
+  }
+  assert.strictEqual(params(id, 1).maxNum, 10);
+  assert.strictEqual(params(id, 1).questions, 5);
+}
+
+/* Đua Xe Toán */
+monoId("dua-xe-toan", "oppSpeed1", "up"); monoId("dua-xe-toan", "oppSpeed2", "up");
+monoId("dua-xe-toan", "decayTauS", "down"); monoId("dua-xe-toan", "raceDistPx", "up");
+for (const D of Ds) {
+  const p = params("dua-xe-toan", D);
+  ok(p.oppSpeed1 <= 190 && p.oppSpeed2 <= 170 && p.decayTauS >= 1.4, `dua-xe trần/sàn D=${D}`);
+  ok(p.raceDistPx === 880 * p.questions, `dua-xe raceDistPx = 880 x questions ở D=${D}`);
+  ok(p.boostPxS > p.oppSpeed1, `dua-xe: vọt (${p.boostPxS}) nhanh hơn đối thủ 1 ở D=${D}`);
+  ok(p.crawlPxS < p.oppSpeed2, `dua-xe: bò (${p.crawlPxS}) chậm hơn đối thủ 2 ở D=${D}`);
+}
+assert.strictEqual(params("dua-xe-toan", 1).oppSpeed1, 95);
+assert.strictEqual(params("dua-xe-toan", 1).oppSpeed2, 80);
+assert.strictEqual(params("dua-xe-toan", 1).decayTauS, 2.3);
+assert.strictEqual(params("dua-xe-toan", 1).raceDistPx, 4400);
+
+/* Penalty Toán */
+monoId("penalty-toan", "saveP", "up"); monoId("penalty-toan", "fastMs", "down"); monoId("penalty-toan", "needGoals", "up");
+for (const D of Ds) {
+  const p = params("penalty-toan", D);
+  ok(p.saveP >= 0.45 && p.saveP <= 0.85, `penalty saveP trong [0.45,0.85] ở D=${D} (=${p.saveP})`);
+  ok(p.fastMs >= 3000 && p.fastMs <= 9000, `penalty fastMs trong [3000,9000] ở D=${D}`);
+  ok(p.needGoals <= 5 && p.shots === 5, `penalty needGoals<=5, luôn 5 quả ở D=${D}`);
+  ok(p.needGoals === params(5, D).needGoals, `penalty needGoals khớp công thức Màn 5 ở D=${D}`);
+}
+assert.strictEqual(params("penalty-toan", 1).saveP, 0.45);
+assert.strictEqual(params("penalty-toan", 1).fastMs, 9000);
+assert.strictEqual(params("penalty-toan", 1).needGoals, 2);
+
+/* Tháp Pháo Tàu Chiến */
+monoId("thap-phao", "approachMs", "down"); monoId("thap-phao", "wiggleAmp", "up");
+for (const D of Ds) {
+  const p = params("thap-phao", D);
+  ok(p.approachMs >= 4500 && p.approachMs <= 9500, `thap-phao approachMs trong [4500,9500] ở D=${D} (=${p.approachMs})`);
+  ok(p.wiggleAmp <= 26 && p.hearts === 3 && p.waves === p.questions, `thap-phao trần/sàn ở D=${D}`);
+  ok(D < 5 ? p.wiggleAmp === 0 : p.wiggleAmp > 0, `thap-phao wiggle chỉ từ D>=5 (D=${D}: ${p.wiggleAmp})`);
+}
+assert.strictEqual(params("thap-phao", 1).approachMs, 9500);
+assert.strictEqual(params("thap-phao", 4).wiggleAmp, 0);
+assert.ok(params("thap-phao", 5).wiggleAmp > 0);
+
+/* Săn Kho Báu Biển Sâu */
+monoId("kho-bau", "segments", "up");
+for (const D of Ds) {
+  const p = params("kho-bau", D);
+  ok(p.segments === p.questions, `kho-bau segments = questions ở D=${D}`);
+  ok(p.gemEvery === 3, `kho-bau gemEvery = 3 ở D=${D}`);
+}
+
 /* D không hợp lệ -> kẹp về 1 */
 assert.deepStrictEqual(params(2, 0), params(2, 1));
 assert.deepStrictEqual(params(4, -3), params(4, 1));
 assert.deepStrictEqual(params("tinh-nhanh", 0), params("tinh-nhanh", 1));
+assert.deepStrictEqual(params("dua-xe-toan", 0), params("dua-xe-toan", 1));
+assert.deepStrictEqual(params("thap-phao", -2), params("thap-phao", 1));
 
-console.log(`difficulty.test.js: ${checks} assertions đạt (D=1..30, 5 màn + 2 game toán)`);
+console.log(`difficulty.test.js: ${checks} assertions đạt (D=1..30, 5 màn + 6 game toán)`);
