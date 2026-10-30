@@ -1,8 +1,10 @@
 /* Tìm Số Bí Ẩn — game Đảo Toán (ES module, tự đăng ký vào KrakenRegistry).
    Phương trình thiếu một số: a + ? = c, ? + b = c, a − ? = c, ? − b = c (phạm vi 100,
    tham số theo công thức D ở js/difficulty.js, kiểu vị trí thiếu mở dần theo cấp).
-   Bé BẤM hoặc CHẠM vào số đúng. Sai -> gợi ý phép tính ngược và chọn lại, không bao giờ "thua".
-   Chạy tốt trên máy tính và iPad (chỉ dùng click, không hover/di chuột). */
+   Bé TỰ GÕ số bí ẩn bằng bàn phím số trong game (hoặc phím thật) — không còn trắc nghiệm.
+   Sai -> gợi ý phép tính ngược (sai lần 2 có mẹo tách số) và gõ lại, không bao giờ "thua".
+   Chạy tốt trên máy tính và iPad (chạm/click + phím số, không hover). */
+import { createKeypad, decomposeHint } from "./keypad.js";
 
 const VEHICLES = [
   { svg: () => window.KrakenIcons.car("#3a86ff"), label: "Thám tử Kraken điều tra cùng đoàn xe!" },
@@ -13,28 +15,33 @@ const VEHICLES = [
 function startSoBiAn(stage, api) {
   const P = api.params;
   const TOTAL = P.questions;
-  let qIndex = 0, firstTry = 0, wrongThisQ = false, done = false, timer = null;
+  let qIndex = 0, firstTry = 0, wrongThisQ = false, wrongCount = 0, done = false, timer = null;
+  let currentQ = null;
 
   stage.classList.add("math-stage");
   stage.innerHTML = `
     <div class="math-wrap">
       <div class="math-chip"><span class="math-chip-icon"></span><span class="math-chip-label"></span></div>
-      <div class="math-eq"></div>
-      <div class="math-choices"></div>
+      <div class="math-main">
+        <div class="math-eq"></div>
+        <div class="math-pad-holder"></div>
+      </div>
       <div class="math-hint"></div>
     </div>`;
   const chipIcon = stage.querySelector(".math-chip-icon");
   const chipLabel = stage.querySelector(".math-chip-label");
   const eqEl = stage.querySelector(".math-eq");
-  const choicesEl = stage.querySelector(".math-choices");
   const hintEl = stage.querySelector(".math-hint");
+
+  const kp = createKeypad({ onSubmit: submitAnswer });
+  stage.querySelector(".math-pad-holder").appendChild(kp.el);
 
   function updateHud() {
     api.hud.textContent = `🔍 Câu ${Math.min(qIndex + 1, TOTAL)}/${TOTAL} · Đúng ngay: ${firstTry}`;
   }
 
   function equationHtml(q) {
-    const blank = `<span class="math-blank">?</span>`;
+    const blank = `<span class="kp-anchor"></span>`;
     const op = q.op === "+" ? "+" : "−";
     const left = q.blank === "a" ? blank : `<span>${q.a}</span>`;
     const right = q.blank === "b" ? blank : `<span>${q.b}</span>`;
@@ -50,14 +57,23 @@ function startSoBiAn(stage, api) {
     }
   }
 
-  function pick(btn, value, q) {
-    if (done || btn.disabled) return;
+  /* Mẹo tách số cho phép tính NGƯỢC dùng để tìm số bí ẩn (theo từng kiểu vị trí thiếu). */
+  function decomposeFor(q) {
+    switch (q.type) {
+      case 0: return decomposeHint(q.c, "-", q.a);
+      case 1: return decomposeHint(q.c, "-", q.b);
+      case 2: return decomposeHint(q.a, "-", q.c);
+      default: return decomposeHint(q.c, "+", q.b);
+    }
+  }
+
+  function submitAnswer(value) {
+    if (done || !currentQ) return;
+    const q = currentQ;
     if (value === q.missing) {
       window.KrakenAudio.pop();
-      btn.classList.add("correct");
-      choicesEl.querySelectorAll(".math-choice").forEach(x => { x.disabled = true; });
-      const blankEl = eqEl.querySelector(".math-blank");
-      if (blankEl) { blankEl.textContent = q.missing; blankEl.classList.add("found"); }
+      kp.slot.classList.add("found");
+      kp.setEnabled(false);
       if (!wrongThisQ) firstTry++;
       window.Kraken.floatText(stage, stage.clientWidth / 2, stage.clientHeight * 0.28);
       qIndex++;
@@ -65,10 +81,15 @@ function startSoBiAn(stage, api) {
       timer = setTimeout(nextQuestion, 900);
     } else {
       wrongThisQ = true;
+      wrongCount++;
       window.KrakenAudio.gentle();
-      btn.classList.add("wrong");
-      btn.disabled = true;
-      hintEl.textContent = hintFor(q);
+      eqEl.classList.remove("shake");
+      void eqEl.offsetWidth;
+      eqEl.classList.add("shake");
+      kp.clear();
+      hintEl.textContent = wrongCount >= 2
+        ? (decomposeFor(q) || hintFor(q))
+        : hintFor(q);
     }
   }
 
@@ -76,21 +97,19 @@ function startSoBiAn(stage, api) {
     if (done) return;
     if (qIndex >= TOTAL) { finish(); return; }
     wrongThisQ = false;
+    wrongCount = 0;
     hintEl.textContent = "";
     const q = window.KrakenMath.makeMissing(P);
+    currentQ = q;
     const v = VEHICLES[Math.floor(Math.random() * VEHICLES.length)];
     chipIcon.innerHTML = v.svg();
     chipLabel.textContent = v.label;
     eqEl.innerHTML = equationHtml(q);
-    choicesEl.innerHTML = "";
-    for (const value of window.KrakenMath.makeChoices(q.missing, P.choices, P.distGap)) {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "math-choice";
-      b.textContent = value;
-      b.addEventListener("click", () => pick(b, value, q));
-      choicesEl.appendChild(b);
-    }
+    const anchor = eqEl.querySelector(".kp-anchor");
+    if (anchor) anchor.replaceWith(kp.slot);
+    kp.slot.classList.remove("found");
+    kp.clear();
+    kp.setEnabled(true);
     window.__mathDebug = { id: "so-bi-an", answer: q.missing, q: qIndex + 1, total: TOTAL };
     updateHud();
   }
@@ -110,6 +129,7 @@ function startSoBiAn(stage, api) {
   return function cleanup() {
     done = true;
     if (timer) clearTimeout(timer);
+    kp.destroy();
     stage.classList.remove("math-stage");
     if (window.__mathDebug && window.__mathDebug.id === "so-bi-an") delete window.__mathDebug;
   };
@@ -117,8 +137,8 @@ function startSoBiAn(stage, api) {
 
 window.KrakenRegistry.registerGame({
   id: "so-bi-an", island: "toan", icon: "🔍",
-  name: "Tìm Số Bí Ẩn", skill: "Tìm số còn thiếu trong phép cộng/trừ",
+  name: "Tìm Số Bí Ẩn", skill: "Tìm số còn thiếu trong phép cộng/trừ — tự gõ đáp án",
   title: "Tìm Số Bí Ẩn — Đảo Toán",
-  instruction: "👆 Tìm xem số bí ẩn ? là số mấy rồi CHẠM vào đáp án đúng nhé!",
+  instruction: "⌨️ Tìm xem số bí ẩn ? là số mấy rồi GÕ vào bàn phím số nhé!",
   start: startSoBiAn
 });

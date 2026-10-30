@@ -13,7 +13,10 @@
   /* Thông số chung cho các game TOÁN (Đảo Toán): cộng/trừ trong phạm vi 100.
      - maxNum: trần của số hạng và kết quả, lớn dần 10 -> 100 theo D.
      - carryP: xác suất phép tính "có nhớ" (cộng) / "có mượn" (trừ), 0 ở D=1 rồi tăng dần.
-     - questions: số câu mỗi lượt; choices: số đáp án để chọn; distGap: độ "gần" của đáp án nhiễu (càng cao cấp càng gần đáp án đúng). */
+     - questions: số câu mỗi lượt.
+     - choices/distGap: THAM SỐ CŨ của thời trắc nghiệm — các game nay đã chuyển sang
+       TỰ GÕ đáp án (bàn phím số) nên KHÔNG còn game nào dùng nữa; giữ lại trong kết quả
+       chỉ để tương thích ngược (test tính chất cũ + dữ liệu đã lưu), đừng dùng cho game mới. */
   function mathParams(D) {
     return {
       maxNum: Math.min(100, 10 * D),
