@@ -54,6 +54,24 @@
     };
   }
 
+  /* Tháp Pháo Tàu Chiến: máy bay địch bay tới tàu càng lúc càng nhanh theo D.
+     - approachMs: thời gian 1 chiếc bay từ mép phải tới tàu (9500ms -> sàn 4500ms).
+     - wiggleAmp: biên độ lượn lên/xuống của máy bay (chỉ từ D>=5, thuần hình ảnh).
+     - hearts: số "tim" của tàu — mất hết tim KHÔNG thua, chỉ ảnh hưởng điểm. */
+  function turretParams(D) {
+    return {
+      approachMs: Math.max(4500, Math.round(9500 * Math.pow(0.94, D - 1))),
+      wiggleAmp: D < 5 ? 0 : Math.min(26, 6 * (D - 4)),
+      hearts: 3
+    };
+  }
+
+  /* Săn Kho Báu Biển Sâu: game nhịp chậm, không đồng hồ — số đoạn lặn = số câu,
+     cứ 3 câu đúng-ngay liên tiếp được 1 viên ngọc. */
+  function treasureParams(D) {
+    return { gemEvery: 3 };
+  }
+
   function params(level, D) {
     D = normD(D);
 
@@ -88,6 +106,24 @@
       const p = mathParams(D);
       p.subFrac = Math.min(0.5, 0.3 + 0.05 * (D - 1));
       Object.assign(p, penaltyParams(D));
+      return p;
+    }
+
+    /* Đảo Toán — Tháp Pháo Tàu Chiến: bắn hạ máy bay địch bằng cách gõ đúng phép tính nó mang. */
+    if (level === "thap-phao") {
+      const p = mathParams(D);
+      p.subFrac = Math.min(0.5, 0.3 + 0.05 * (D - 1));
+      Object.assign(p, turretParams(D));
+      p.waves = p.questions;
+      return p;
+    }
+
+    /* Đảo Toán — Săn Kho Báu Biển Sâu: mỗi câu đúng tàu ngầm lặn sâu thêm 1 đoạn tới kho báu. */
+    if (level === "kho-bau") {
+      const p = mathParams(D);
+      p.subFrac = Math.min(0.5, 0.3 + 0.05 * (D - 1));
+      Object.assign(p, treasureParams(D));
+      p.segments = p.questions;
       return p;
     }
 

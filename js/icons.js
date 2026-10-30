@@ -72,6 +72,24 @@ window.KrakenIcons = (function () {
       <circle cx="152" cy="94" r="17" fill="#22223b"/><circle cx="152" cy="94" r="8" fill="#ced4da"/>`);
   }
 
+  /* Tàu ngầm vàng — nhìn ngang, mũi hướng phải, dùng cho Săn Kho Báu Biển Sâu. viewBox 200x120 */
+  function submarine(accent) {
+    const body = accent || "#ffd60a";
+    return svg("0 0 200 120", `
+      <rect x="88" y="14" width="6" height="18" fill="#495057"/>
+      <rect x="88" y="10" width="20" height="6" rx="3" fill="#495057"/>
+      <path d="M84 32 L122 32 L116 46 L90 46 Z" fill="${body}" stroke="rgba(0,0,0,.22)" stroke-width="2"/>
+      <path d="M16 78 Q14 52 52 44 L140 44 Q182 46 188 68 Q190 84 168 92 L60 98 Q22 98 16 78 Z" fill="${body}" stroke="rgba(0,0,0,.22)" stroke-width="2"/>
+      <path d="M18 66 L6 50 L20 48 L26 62 Z" fill="#f4a261"/>
+      <path d="M20 82 L8 96 L22 96 L27 84 Z" fill="#f4a261"/>
+      <rect x="2" y="58" width="7" height="30" rx="3" fill="#e76f51"/>
+      <circle cx="66" cy="70" r="11" fill="#caf0f8" stroke="#277da1" stroke-width="3"/>
+      <circle cx="102" cy="70" r="11" fill="#caf0f8" stroke="#277da1" stroke-width="3"/>
+      <circle cx="138" cy="70" r="11" fill="#caf0f8" stroke="#277da1" stroke-width="3"/>
+      <circle cx="172" cy="66" r="4.5" fill="#ef476f"/>
+      <path d="M30 92 Q100 102 176 84" fill="none" stroke="#e0a800" stroke-width="4"/>`);
+  }
+
   /* Xe đua nhìn từ trên cao — mũi xe hướng PHẢI (+x), dùng cho Màn 4 để xoay theo hướng chạy. viewBox 120x80 */
   function raceCar() {
     return svg("0 0 120 80", `
@@ -194,5 +212,5 @@ window.KrakenIcons = (function () {
       <path d="M84 25 Q83 12 97 12 Q110 12 110 26 Q105 17 96 17 Q87 18 84 25 Z" fill="#171310"/>`);
   }
 
-  return { warship, car, carSide, jet, raceCar, goalkeeper, striker, ronaldoRun, ronaldoSlide };
+  return { warship, car, carSide, jet, submarine, raceCar, goalkeeper, striker, ronaldoRun, ronaldoSlide };
 })();

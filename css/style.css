@@ -286,6 +286,48 @@ body {
 .pen-zone:active { background: rgba(255,224,102,.45); }
 .pen-ball { position: absolute; left: 50%; top: 84%; font-size: 54px; z-index: 7; line-height: 1; transform: translate(-50%,-50%); }
 
+/* ================= THÁP PHÁO TÀU CHIẾN ================= */
+.tur-stage { background: #90e0ef; touch-action: manipulation; }
+.tur-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.tur-scene { position: relative; flex: 1; overflow: hidden; background: linear-gradient(180deg, #90e0ef 0%, #caf0f8 55%, #0077b6 55.2%, #023e8a 100%); }
+.tur-hearts { position: absolute; top: 8px; left: 12px; font-size: 25px; z-index: 8; background: rgba(255,255,255,.85); border: 3px solid #22223b; border-radius: 999px; padding: 2px 14px; line-height: 1.2; }
+.tur-ship { position: absolute; left: 1.5%; bottom: 3%; width: min(300px, 36%); z-index: 5; line-height: 1; }
+.tur-ship svg { width: 100%; height: auto; display: block; overflow: visible; }
+.tur-cannon { position: absolute; left: 66%; top: 34%; width: 56px; height: 13px; background: #343a40; border: 2px solid #22223b; border-radius: 7px; transform-origin: 6px 50%; z-index: 6; }
+.tur-plane { position: absolute; width: 150px; z-index: 7; will-change: left, top; line-height: 1; }
+.tur-jet { transform: scaleX(-1); line-height: 1; }
+.tur-jet svg { width: 100%; height: auto; display: block; overflow: visible; }
+.tur-chip {
+  position: absolute; left: 50%; top: -36px; transform: translateX(-50%); z-index: 8;
+  background: #fff; border: 3px solid #22223b; border-radius: 999px; padding: 2px 14px;
+  font-size: 22px; font-weight: bold; white-space: nowrap; color: #023047;
+}
+.tur-boom { position: absolute; left: 50%; top: 42%; transform: translate(-50%,-50%); font-size: 64px; z-index: 9; line-height: 1; }
+.tur-shot { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: #ffd60a; border: 2px solid #e8590c; z-index: 9; margin: -6px 0 0 -6px; }
+.tur-splash { position: absolute; font-size: 40px; z-index: 8; pointer-events: none; animation: popOut .8s forwards; line-height: 1; }
+.tur-bar { background: rgba(255,251,230,.95); border-top: 4px solid #22223b; }
+.tur-eq, .tre-eq { font-size: clamp(30px, 4.4vw, 46px); padding: 8px 22px; }
+.tur-hint, .tre-hint { background: rgba(255,251,230,.95); padding-bottom: 6px; }
+
+/* ================= SĂN KHO BÁU BIỂN SÂU ================= */
+.tre-stage { background: linear-gradient(180deg, #48cae4 0%, #023e8a 100%); touch-action: manipulation; }
+.tre-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.tre-scene { position: relative; flex: 1; overflow: hidden; background: linear-gradient(180deg, #48cae4 0%, #0096c7 45%, #023e8a 100%); }
+.tre-surface { position: absolute; top: 0; left: 0; right: 0; height: 46px; background: rgba(255,255,255,.25); font-size: 30px; display: flex; justify-content: space-between; align-items: center; padding: 2px 16px; z-index: 4; }
+.tre-gems { position: absolute; top: 54px; left: 12px; font-size: 24px; font-weight: bold; z-index: 8; background: rgba(255,255,255,.85); border: 3px solid #22223b; border-radius: 999px; padding: 2px 14px; }
+.tre-sub { position: absolute; left: 10%; width: 190px; z-index: 6; line-height: 1; transition: top .8s ease; }
+.tre-sub svg { width: 100%; height: auto; display: block; overflow: visible; }
+.tre-sub.shake { animation: shake .4s ease; }
+.tre-meter { position: absolute; right: 16px; top: 62px; bottom: 76px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; z-index: 5; }
+.tre-dot { width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,.35); border: 2px solid #fff; }
+.tre-dot.on { background: #ffd60a; border-color: #ffd60a; }
+.tre-chest { position: absolute; bottom: 2%; left: 56%; font-size: 76px; z-index: 5; line-height: 1; }
+.tre-bubble { position: absolute; font-size: 20px; z-index: 7; pointer-events: none; animation: treBubble .9s ease-out forwards; line-height: 1; }
+@keyframes treBubble { 0% { opacity: 0; transform: translateY(0) scale(.6); } 25% { opacity: 1; } 100% { opacity: 0; transform: translateY(-64px) scale(1.15); } }
+.tre-coin-bit { position: absolute; font-size: 26px; z-index: 9; pointer-events: none; line-height: 1; }
+.tre-gem-fly { position: absolute; font-size: 30px; z-index: 9; pointer-events: none; line-height: 1; }
+.tre-bar { background: rgba(255,251,230,.95); border-top: 4px solid #22223b; }
+
 /* ---------- bàn phím số GÕ ĐÁP ÁN (dùng chung mọi game Đảo Toán) ---------- */
 .math-main { display: flex; align-items: center; justify-content: center; gap: 30px; }
 .math-bar { display: flex; align-items: center; justify-content: center; gap: 26px; padding: 8px 14px 2px; }
