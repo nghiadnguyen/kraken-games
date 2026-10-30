@@ -44,6 +44,7 @@ window.KrakenAudio = (function () {
     goal() { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.11, 0.22, "triangle", 0.2)); },
     gentle() { tone(330, 0, 0.15, "sine", 0.12); },
     whoosh() { sweep(850, 220, 0, 0.5, "sine", 0.16); sweep(520, 160, 0.05, 0.45, "triangle", 0.08); },
+    vroom() { sweep(130, 720, 0, 0.32, "sawtooth", 0.06); sweep(85, 320, 0, 0.3, "square", 0.045); },
     jingle() { [523, 587, 659, 784, 659, 784, 1047].forEach((f, i) => tone(f, i * 0.13, 0.25, "triangle", 0.2)); }
   };
 })();

@@ -27,6 +27,33 @@
     };
   }
 
+  /* Đua Xe Toán: tốc độ đối thủ tăng dần theo D, xe Kraken "đuối" nhanh hơn (decayTau nhỏ dần).
+     - crawlPxS: tốc độ bò tối thiểu của xe Kraken khi chưa trả lời; boostPxS: tốc độ vọt khi trả lời đúng.
+     - decayTauS: hằng số thời gian tốc độ tụt về crawl (giây) — càng cao cấp tụt càng nhanh.
+     - raceDistPx (gắn ở params): 880 x số câu — trả lời đúng ~mỗi 7 giây ở D=1 là về nhất/nhì. */
+  function raceParams(D) {
+    return {
+      crawlPxS: 55,
+      boostPxS: 330,
+      decayTauS: Math.max(1.4, 2.3 - 0.08 * (D - 1)),
+      oppSpeed1: Math.min(190, 95 + 7 * (D - 1)),
+      oppSpeed2: Math.min(170, 80 + 6 * (D - 1))
+    };
+  }
+
+  /* Penalty Toán: thủ môn bắt bóng giỏi dần theo D; trả lời NHANH thì thủ môn yếu đi một nửa.
+     - saveP: xác suất thủ môn cản được KHI bay đúng hướng bóng (bay sai hướng thì luôn vào).
+     - fastMs: trả lời trong thời gian này (mili giây) được tính là "nhanh" -> saveP giảm một nửa.
+     - needGoals: số bàn cần ghi trong 5 quả (cùng công thức Màn 5). */
+  function penaltyParams(D) {
+    return {
+      saveP: Math.min(0.85, 0.45 + 0.05 * (D - 1)),
+      fastMs: Math.max(3000, 9000 - 500 * (D - 1)),
+      needGoals: Math.min(5, 2 + Math.floor((D - 1) / 3)),
+      shots: 5
+    };
+  }
+
   function params(level, D) {
     D = normD(D);
 
@@ -44,6 +71,23 @@
     if (level === "so-bi-an") {
       const p = mathParams(D);
       p.blankTypes = D < 3 ? 2 : 4;
+      return p;
+    }
+
+    /* Đảo Toán — Đua Xe Toán: trả lời đúng = xe vọt lên, nghĩ lâu = xe chậm dần, đối thủ vượt. */
+    if (level === "dua-xe-toan") {
+      const p = mathParams(D);
+      p.subFrac = Math.min(0.5, 0.3 + 0.05 * (D - 1));
+      Object.assign(p, raceParams(D));
+      p.raceDistPx = 880 * p.questions;
+      return p;
+    }
+
+    /* Đảo Toán — Penalty Toán: tính đúng mới được sút, tính nhanh thì thủ môn khó bắt hơn. */
+    if (level === "penalty-toan") {
+      const p = mathParams(D);
+      p.subFrac = Math.min(0.5, 0.3 + 0.05 * (D - 1));
+      Object.assign(p, penaltyParams(D));
       return p;
     }
 

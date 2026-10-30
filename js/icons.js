@@ -56,6 +56,22 @@ window.KrakenIcons = (function () {
       <path d="M4 66 L-6 62 L-6 74 Z" fill="#ffb703"/>`);
   }
 
+  /* Xe đua NHÌN NGANG — mũi hướng phải, cánh gió sau, dùng cho Đua Xe Toán. viewBox 200x120 */
+  function carSide(accent) {
+    const body = accent || "#e63946";
+    return svg("0 0 200 120", `
+      <rect x="8" y="34" width="34" height="8" rx="4" fill="#22223b"/>
+      <rect x="34" y="38" width="7" height="20" fill="#22223b"/>
+      <path d="M12 88 L20 66 Q24 56 44 53 L74 49 Q88 30 116 30 Q142 30 154 50 L176 56 Q190 60 191 73 L191 88 Q191 94 183 94 L20 94 Q11 94 12 88 Z" fill="${body}" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+      <path d="M82 49 Q92 36 112 36 L112 49 Z" fill="#caf0f8"/>
+      <path d="M118 36 Q136 38 146 50 L118 49 Z" fill="#caf0f8"/>
+      <circle cx="105" cy="40" r="7" fill="#ffd60a" stroke="#22223b" stroke-width="2"/>
+      <rect x="14" y="72" width="176" height="8" fill="#ffffff" opacity="0.8"/>
+      <circle cx="186" cy="72" r="5" fill="#ffe66d"/>
+      <circle cx="50" cy="94" r="17" fill="#22223b"/><circle cx="50" cy="94" r="8" fill="#ced4da"/>
+      <circle cx="152" cy="94" r="17" fill="#22223b"/><circle cx="152" cy="94" r="8" fill="#ced4da"/>`);
+  }
+
   /* Xe đua nhìn từ trên cao — mũi xe hướng PHẢI (+x), dùng cho Màn 4 để xoay theo hướng chạy. viewBox 120x80 */
   function raceCar() {
     return svg("0 0 120 80", `
@@ -178,5 +194,5 @@ window.KrakenIcons = (function () {
       <path d="M84 25 Q83 12 97 12 Q110 12 110 26 Q105 17 96 17 Q87 18 84 25 Z" fill="#171310"/>`);
   }
 
-  return { warship, car, jet, raceCar, goalkeeper, striker, ronaldoRun, ronaldoSlide };
+  return { warship, car, carSide, jet, raceCar, goalkeeper, striker, ronaldoRun, ronaldoSlide };
 })();
