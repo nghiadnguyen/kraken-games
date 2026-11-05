@@ -101,7 +101,7 @@ async function answerAllTyped(page, maxRounds) {
     for (const id of ["tinh-nhanh", "so-bi-an", "dua-xe-toan", "penalty-toan", "thap-phao", "kho-bau"]) {
       ok(await page.locator(`.level-btn[data-game="${id}"]`).count() === 1, `Có nút game: ${id}`);
     }
-    for (const isl of ["ban-phim", "chu", "tu-duy"]) {
+    for (const isl of ["chu", "tu-duy"]) {
       ok(await page.locator(`#island-${isl}`).count() === 1, `Có đảo sắp ra mắt: ${isl}`);
       ok(await page.locator(`#island-${isl} a, #island-${isl} button`).count() === 0, `Đảo ${isl}: không có link/nút chết`);
       const txt = await page.locator(`#island-${isl}`).innerText();

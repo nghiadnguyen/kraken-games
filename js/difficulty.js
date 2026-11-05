@@ -72,6 +72,56 @@
     return { gemEvery: 3 };
   }
 
+  /* ===== ĐẢO BÀN PHÍM: "hồ phím" dùng chung, lớn dần theo D =====
+     Thứ tự mở khóa cố định: hàng nhà ASDFGHJKL (9 phím) -> hàng trên QWERTYUIOP
+     -> hàng dưới ZXCVBNM -> hàng số 1234567890. Mỗi cấp +3 phím, trần 36 phím
+     (KHÔNG có phím ";" — bàn phím trong game chỉ gồm chữ + số). */
+  const TYPING_ORDER = "ASDFGHJKL" + "QWERTYUIOP" + "ZXCVBNM" + "1234567890";
+  function typingPool(D) {
+    const size = Math.min(TYPING_ORDER.length, 9 + 3 * (D - 1));
+    return TYPING_ORDER.slice(0, size);
+  }
+
+  /* Tìm Phím Nhanh: bé tìm 1 phím đích trên bàn phím.
+     - targets: số phím phải tìm mỗi lượt (10 -> trần 15).
+     - hintMs: chờ quá lâu (hoặc bấm sai lần đầu) thì phím đích tự phát sáng gợi ý;
+       cấp càng cao gợi ý càng đến muộn (4000ms -> sàn 1500ms). */
+  function huntParams(D) {
+    return {
+      pool: typingPool(D),
+      targets: Math.min(15, 10 + (D - 1)),
+      hintMs: Math.max(1500, Math.round(4000 * Math.pow(0.9, D - 1)))
+    };
+  }
+
+  /* Bong Bóng Chữ Cái: bong bóng mang chữ nổi lên, bé bấm đúng phím để làm vỡ.
+     - total: tổng số bong bóng mỗi lượt (12 -> trần 20).
+     - riseMs: thời gian 1 bong bóng nổi từ đáy lên mặt nước (9500ms -> sàn 4200ms).
+     - concurrent: số bong bóng nổi cùng lúc (1 -> trần 3, cứ 3 cấp +1).
+     - spawnMs: nhịp thả bong bóng mới (1600ms -> sàn 900ms). */
+  function bubbleParams(D) {
+    return {
+      pool: typingPool(D),
+      total: Math.min(20, 12 + (D - 1)),
+      riseMs: Math.max(4200, Math.round(9500 * Math.pow(0.94, D - 1))),
+      concurrent: Math.min(3, 1 + Math.floor((D - 1) / 3)),
+      spawnMs: Math.max(900, 1600 - 100 * (D - 1))
+    };
+  }
+
+  /* Gõ Từ Tiếng Anh: gõ trọn từ tiếng Anh theo tranh.
+     - words: số từ mỗi lượt (5 -> trần 8).
+     - maxLen: độ dài từ tối đa — cấp 1 CHỈ từ 3 chữ, cứ 2 cấp +1 chữ, trần 7.
+     - hintMode: cách gợi ý phím kế tiếp — D<=2 "always" (phím cần gõ luôn phát sáng),
+       D<=4 "delayed" (đứng yên 1.5s mới phát sáng), cao hơn "none" (tự nhớ vị trí). */
+  function wordParams(D) {
+    return {
+      words: Math.min(8, 5 + Math.floor((D - 1) / 2)),
+      maxLen: Math.min(7, 3 + Math.floor((D - 1) / 2)),
+      hintMode: D <= 2 ? "always" : D <= 4 ? "delayed" : "none"
+    };
+  }
+
   function params(level, D) {
     D = normD(D);
 
@@ -126,6 +176,15 @@
       p.segments = p.questions;
       return p;
     }
+
+    /* Đảo Bàn Phím — Tìm Phím Nhanh: làm quen vị trí từng phím trên bàn phím. */
+    if (level === "tim-phim") return huntParams(D);
+
+    /* Đảo Bàn Phím — Bong Bóng Chữ Cái: bấm đúng phím để làm vỡ bong bóng chữ đang nổi. */
+    if (level === "bong-bong-chu") return bubbleParams(D);
+
+    /* Đảo Bàn Phím — Gõ Từ Tiếng Anh: gõ trọn từ theo tranh, học luôn nghĩa tiếng Việt. */
+    if (level === "go-tu-tieng-anh") return wordParams(D);
 
     switch (Number(level)) {
 
@@ -190,7 +249,7 @@
     return {};
   }
 
-  const api = { params: params };
+  const api = { params: params, typingPool: typingPool };
   root.KrakenDifficulty = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(typeof window !== "undefined" ? window : globalThis);

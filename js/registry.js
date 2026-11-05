@@ -7,7 +7,7 @@ window.KrakenRegistry = (function () {
   const islands = [
     { id: "chuot", title: "Đảo Chuột", emoji: "🐭", note: "Luyện chuột như cao thủ qua 5 màn vui nhộn!" },
     { id: "toan", title: "Đảo Toán", emoji: "➕", note: "Cộng trừ trong phạm vi 100 cùng xe, máy bay và tàu chiến!" },
-    { id: "ban-phim", title: "Đảo Bàn Phím", emoji: "⌨️", locked: true },
+    { id: "ban-phim", title: "Đảo Bàn Phím", emoji: "⌨️", note: "Luyện bàn phím: tìm vị trí phím, bắt bong bóng chữ và gõ từ tiếng Anh!" },
     { id: "chu", title: "Đảo Chữ", emoji: "🔤", locked: true },
     { id: "tu-duy", title: "Đảo Tư Duy", emoji: "🧩", locked: true }
   ];

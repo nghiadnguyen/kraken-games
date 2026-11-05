@@ -358,3 +358,87 @@ body {
   .level-header, .level-instruction { width: calc(100vw - 16px); }
   .level-header h2 { font-size: 24px; }
 }
+
+/* ================= ĐẢO BÀN PHÍM: bàn phím QWERTY trong game (dùng chung) ================= */
+.kb-keyboard { display: flex; flex-direction: column; gap: 7px; width: 100%; }
+.kb-row { display: flex; gap: 7px; justify-content: center; }
+.kb-row-2 { padding: 0 4%; }  /* hàng nhà hơi thụt vào như bàn phím thật */
+.kb-row-3 { padding: 0 10%; } /* hàng dưới thụt vào thêm */
+.kb-key {
+  flex: 1 1 0; min-width: 0; height: 56px; padding: 0;
+  font-family: inherit; font-size: 27px; font-weight: bold; color: #22223b; line-height: 1;
+  background: #fff; border: 4px solid #22223b; border-radius: 14px; cursor: pointer;
+  box-shadow: 0 4px 0 #22223b; transition: transform .07s, box-shadow .07s, background .15s;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.kb-key:active { transform: translateY(3px); box-shadow: 0 1px 0 #22223b; }
+.kb-key.kb-target { background: #ffe66d; border-color: #e8590c; animation: kbGlow .65s ease-in-out infinite alternate; }
+@keyframes kbGlow {
+  from { box-shadow: 0 4px 0 #22223b, 0 0 2px 0 rgba(255, 183, 3, .2); }
+  to { box-shadow: 0 4px 0 #22223b, 0 0 24px 7px rgba(255, 183, 3, .9); }
+}
+.kb-key.kb-good { background: #b7e4a8 !important; border-color: #2a9d8f; }
+.kb-key.kb-bad { background: #ffd6d6 !important; animation: shake .35s ease; }
+
+/* ================= TÌM PHÍM NHANH ================= */
+.hunt-stage { background: linear-gradient(180deg, #d0f4ff 0%, #fff3b0 100%); touch-action: manipulation; }
+.hunt-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 14px 16px; gap: 10px; }
+.hunt-card { flex: 1; display: flex; align-items: center; justify-content: center; gap: 30px; min-height: 0; }
+.hunt-face { font-size: 104px; line-height: 1; }
+.hunt-mid { text-align: center; }
+.hunt-prompt { font-size: 30px; font-weight: bold; color: #023047; }
+.hunt-target { font-size: 148px; font-weight: bold; line-height: 1.05; color: #023047; text-shadow: 3px 3px 0 #fff; }
+.hunt-pop { animation: starpop .35s ease; }
+.hunt-streak { min-height: 32px; font-size: 23px; font-weight: bold; color: #e8590c; }
+.hunt-star { font-size: 60px; line-height: 1; animation: bob 2.2s ease-in-out infinite; }
+
+/* ================= BONG BÓNG CHỮ CÁI ================= */
+.bub-stage { background: linear-gradient(180deg, #48cae4 0%, #023e8a 100%); touch-action: manipulation; }
+.bub-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.bub-scene { position: relative; flex: 1; overflow: hidden; background: linear-gradient(180deg, #48cae4 0%, #0096c7 45%, #023e8a 100%); }
+.bub-floor { position: absolute; bottom: 0; left: 0; right: 0; height: 44px; background: #e9c46a; border-radius: 50% 50% 0 0 / 100% 100% 0 0; font-size: 28px; display: flex; justify-content: space-around; align-items: center; z-index: 2; }
+.bub-bubble {
+  position: absolute; width: 76px; height: 76px; margin-left: -38px; z-index: 5;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 38px; font-weight: bold; color: #023047; line-height: 1; will-change: transform;
+  background: radial-gradient(circle at 32% 30%, rgba(255,255,255,.95), rgba(173,232,244,.55) 55%, rgba(72,202,228,.45));
+  border: 3px solid rgba(255,255,255,.9); box-shadow: inset -6px -8px 14px rgba(2,62,138,.28);
+}
+.bub-pop { animation: popOut .25s forwards; }
+.bub-kb { background: rgba(255,251,230,.94); border-top: 4px solid #22223b; padding: 10px 12px; }
+
+/* ================= GÕ TỪ TIẾNG ANH ================= */
+.word-stage { background: linear-gradient(180deg, #caf0f8 0%, #fef9c3 100%); touch-action: manipulation; }
+.word-wrap { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 14px 16px; gap: 10px; }
+.word-card { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; min-height: 0; position: relative; overflow: hidden; }
+.word-card.shake { animation: shake .35s ease; }
+.word-pic { font-size: 118px; line-height: 1; }
+.word-pic.word-zoom { animation: wordZoom 1.35s ease-in-out; }
+@keyframes wordZoom {
+  0% { transform: translateX(-330px) scale(.65); opacity: 0; }
+  22% { opacity: 1; }
+  52% { transform: translateX(0) scale(1.18); opacity: 1; }
+  100% { transform: translateX(330px) scale(.75); opacity: 0; }
+}
+.word-slots { display: flex; gap: 10px; }
+.word-slot {
+  width: 62px; height: 76px; display: flex; align-items: center; justify-content: center;
+  font-size: 44px; font-weight: bold; color: #ced4da;
+  background: #fff; border: 4px solid #22223b; border-radius: 16px; line-height: 1;
+}
+.word-slot.filled { color: #2a9d8f; border-color: #2a9d8f; background: #d8f3dc; }
+.word-slot.current { border-color: #ef476f; box-shadow: 0 0 0 5px rgba(239, 71, 111, .3); }
+.word-banner { min-height: 42px; font-size: 31px; font-weight: bold; color: #023047; text-align: center; }
+
+@media (max-width: 700px) {
+  .kb-key { height: 42px; font-size: 19px; border-width: 3px; border-radius: 10px; box-shadow: 0 3px 0 #22223b; }
+  .kb-keyboard, .kb-row { gap: 5px; }
+  .hunt-target { font-size: 92px; }
+  .hunt-face { font-size: 58px; }
+  .hunt-star { font-size: 38px; }
+  .hunt-prompt { font-size: 22px; }
+  .bub-bubble { width: 58px; height: 58px; margin-left: -29px; font-size: 29px; }
+  .word-pic { font-size: 72px; }
+  .word-slot { width: 42px; height: 54px; font-size: 30px; border-radius: 12px; }
+  .word-banner { font-size: 23px; }
+}
