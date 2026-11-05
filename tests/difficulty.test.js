@@ -1,7 +1,7 @@
 /* Test tính chất của js/difficulty.js — chạy: node tests/difficulty.test.js
    Với D = 1..30, mọi màn: thông số hữu hạn, đơn điệu đúng chiều, không vượt trần/sàn. */
 const assert = require("assert");
-const { params } = require("../js/difficulty.js");
+const { params, typingPool } = require("../js/difficulty.js");
 
 let checks = 0;
 function ok(cond, msg) { checks++; assert.ok(cond, msg); }
@@ -172,11 +172,79 @@ for (const D of Ds) {
   ok(p.gemEvery === 3, `kho-bau gemEvery = 3 ở D=${D}`);
 }
 
+/* ===== Đảo Bàn Phím: hồ phím + 3 game gõ phím ===== */
+const FULL_POOL = "ASDFGHJKL" + "QWERTYUIOP" + "ZXCVBNM" + "1234567890";
+assert.strictEqual(FULL_POOL.length, 36, "Thứ tự mở khóa đủ 36 phím (không có ';')");
+assert.strictEqual(typingPool(1), "ASDFGHJKL", "D=1: chỉ hàng nhà ASDFGHJKL");
+{
+  let prevSize = 0;
+  for (const D of Ds) {
+    const pool = typingPool(D);
+    ok(pool === FULL_POOL.slice(0, pool.length), `typingPool là tiền tố của thứ tự chuẩn ở D=${D}`);
+    ok(pool.length === Math.min(36, 9 + 3 * (D - 1)), `typingPool cỡ = min(36, 9+3(D-1)) ở D=${D} (=${pool.length})`);
+    ok(pool.length >= prevSize, `typingPool không thu hẹp ở D=${D}`);
+    prevSize = pool.length;
+    if (D < 30) ok(typingPool(D + 1).startsWith(pool), `typingPool(D+1) chứa trọn typingPool(D) ở D=${D}`);
+  }
+}
+assert.strictEqual(typingPool(10).length, 36, "D=10 mở hết 36 phím");
+assert.strictEqual(typingPool(30).length, 36, "typingPool trần 36 phím");
+
+/* Tìm Phím Nhanh */
+monoId("tim-phim", "targets", "up"); monoId("tim-phim", "hintMs", "down");
+for (const D of Ds) {
+  const p = params("tim-phim", D);
+  ok(p.pool === typingPool(D), `tim-phim pool khớp typingPool ở D=${D}`);
+  ok(p.targets >= 10 && p.targets <= 15, `tim-phim targets trong [10,15] ở D=${D}`);
+  ok(p.hintMs >= 1500 && p.hintMs <= 4000, `tim-phim hintMs trong [1500,4000] ở D=${D} (=${p.hintMs})`);
+}
+assert.strictEqual(params("tim-phim", 1).targets, 10);
+assert.strictEqual(params("tim-phim", 1).hintMs, 4000);
+assert.strictEqual(params("tim-phim", 6).targets, 15);
+assert.strictEqual(params("tim-phim", 30).hintMs, 1500);
+
+/* Bong Bóng Chữ Cái */
+monoId("bong-bong-chu", "total", "up"); monoId("bong-bong-chu", "riseMs", "down");
+monoId("bong-bong-chu", "concurrent", "up"); monoId("bong-bong-chu", "spawnMs", "down");
+for (const D of Ds) {
+  const p = params("bong-bong-chu", D);
+  ok(p.pool === typingPool(D), `bong-bong pool khớp typingPool ở D=${D}`);
+  ok(p.total >= 12 && p.total <= 20, `bong-bong total trong [12,20] ở D=${D}`);
+  ok(p.riseMs >= 4200 && p.riseMs <= 9500, `bong-bong riseMs trong [4200,9500] ở D=${D} (=${p.riseMs})`);
+  ok(p.concurrent >= 1 && p.concurrent <= 3, `bong-bong concurrent trong [1,3] ở D=${D}`);
+  ok(p.spawnMs >= 900 && p.spawnMs <= 1600, `bong-bong spawnMs trong [900,1600] ở D=${D}`);
+}
+assert.strictEqual(params("bong-bong-chu", 1).total, 12);
+assert.strictEqual(params("bong-bong-chu", 1).riseMs, 9500);
+assert.strictEqual(params("bong-bong-chu", 1).concurrent, 1);
+assert.strictEqual(params("bong-bong-chu", 4).concurrent, 2);
+assert.strictEqual(params("bong-bong-chu", 7).concurrent, 3);
+assert.strictEqual(params("bong-bong-chu", 9).total, 20);
+assert.strictEqual(params("bong-bong-chu", 8).spawnMs, 900);
+
+/* Gõ Từ Tiếng Anh */
+monoId("go-tu-tieng-anh", "words", "up"); monoId("go-tu-tieng-anh", "maxLen", "up");
+for (const D of Ds) {
+  const p = params("go-tu-tieng-anh", D);
+  ok(p.words >= 5 && p.words <= 8, `go-tu words trong [5,8] ở D=${D}`);
+  ok(p.maxLen >= 3 && p.maxLen <= 7, `go-tu maxLen trong [3,7] ở D=${D}`);
+  ok(p.hintMode === (D <= 2 ? "always" : D <= 4 ? "delayed" : "none"), `go-tu hintMode đúng bậc ở D=${D} (=${p.hintMode})`);
+}
+assert.strictEqual(params("go-tu-tieng-anh", 1).words, 5);
+assert.strictEqual(params("go-tu-tieng-anh", 1).maxLen, 3);
+assert.strictEqual(params("go-tu-tieng-anh", 3).maxLen, 4);
+assert.strictEqual(params("go-tu-tieng-anh", 5).maxLen, 5);
+assert.strictEqual(params("go-tu-tieng-anh", 7).maxLen, 6);
+assert.strictEqual(params("go-tu-tieng-anh", 9).maxLen, 7);
+assert.strictEqual(params("go-tu-tieng-anh", 7).words, 8);
+
 /* D không hợp lệ -> kẹp về 1 */
 assert.deepStrictEqual(params(2, 0), params(2, 1));
 assert.deepStrictEqual(params(4, -3), params(4, 1));
 assert.deepStrictEqual(params("tinh-nhanh", 0), params("tinh-nhanh", 1));
 assert.deepStrictEqual(params("dua-xe-toan", 0), params("dua-xe-toan", 1));
 assert.deepStrictEqual(params("thap-phao", -2), params("thap-phao", 1));
+assert.deepStrictEqual(params("tim-phim", 0), params("tim-phim", 1));
+assert.deepStrictEqual(params("go-tu-tieng-anh", -1), params("go-tu-tieng-anh", 1));
 
-console.log(`difficulty.test.js: ${checks} assertions đạt (D=1..30, 5 màn + 6 game toán)`);
+console.log(`difficulty.test.js: ${checks} assertions đạt (D=1..30, 5 màn + 6 game toán + 3 game bàn phím)`);
